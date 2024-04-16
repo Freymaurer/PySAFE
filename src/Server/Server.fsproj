@@ -6,6 +6,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Environment.fs" />
+    <Compile Include="PythonService.fs" />
     <Compile Include="Bridge\State.fs" />
     <None Include="paket.references" />
     <Compile Include="Server.fs" />

@@ -5,7 +5,8 @@ open Fable.Remoting.Client
 open Shared
 open State
 open Elmish.Bridge
-
+open Feliz
+open Feliz.DaisyUI
 
 let todosApi =
     Remoting.createApi ()
@@ -36,6 +37,16 @@ let update msg model =
     | SetCurrentTime v -> {model with CurrentTimerValue = v}, Cmd.none
     | Remote stcMsg ->
         Bridge.State.update stcMsg model
+    | GetFastAPIMessage ->
+        let cmd =
+            Cmd.OfAsync.perform
+                todosApi.getHelloWorld
+                ()
+                GetFastAPIMessageResponse
+        model, cmd
+    | GetFastAPIMessageResponse hw ->
+        let nextModel = {model with FastAPIMessage = hw.message}
+        nextModel, Cmd.none
         
     
 
@@ -68,7 +79,7 @@ let private todoAction model dispatch =
 
 let private todoList model dispatch =
     Html.div [
-        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-1"
+        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-2"
         prop.children [
             Html.ol [
                 prop.className "list-decimal ml-6"
@@ -84,7 +95,7 @@ let private todoList model dispatch =
 
 let private websocket (model: Model) dispatch =
     Html.div [
-        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl"
+        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-2"
         prop.children [
             Html.button [
                 prop.className
@@ -99,6 +110,50 @@ let private websocket (model: Model) dispatch =
                 prop.text "Stop Timer"
             ]
             Html.span model.CurrentTimerValue
+        ]
+    ]
+
+let private fastapi (model: Model) dispatch =
+    Html.div [
+        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-2"
+        prop.children [
+            Html.button [
+                prop.className
+                    "flex-no-shrink p-2 px-12 rounded bg-teal-600 outline-none focus:ring-2 ring-teal-300 font-bold text-white hover:bg-teal disabled:opacity-30 disabled:cursor-not-allowed"
+                prop.onClick (fun _ -> dispatch GetFastAPIMessage)
+                prop.text "Get fast api message"
+            ]
+            Html.span model.FastAPIMessage
+        ]
+    ]
+
+
+[<ReactComponent>]
+let private FastapiBridge (model: Model) dispatch =
+    let ws = React.useMemo (fun () -> Bridge.FastAPI.create(EndPoints.fastApiBrideEndpoint))
+    ws.onmessage <- (fun event ->
+        let content = {message = string event.data}
+        GetFastAPIMessageResponse content |> dispatch
+    )
+    let start() = ws.send (box "start")
+    let stop() = ws.send (box "stop")
+    Html.div [
+        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-2"
+        prop.children [
+            Html.span (ws.readyState.ToString())
+            Html.button [
+                prop.className
+                    "flex-no-shrink p-2 px-12 rounded bg-teal-600 outline-none focus:ring-2 ring-teal-300 font-bold text-white hover:bg-teal disabled:opacity-30 disabled:cursor-not-allowed"
+                prop.onClick (fun _ -> start() )
+                prop.text "Start fastapi timer"
+            ]
+            Html.button [
+                prop.className
+                    "flex-no-shrink p-2 px-12 rounded bg-teal-600 outline-none focus:ring-2 ring-teal-300 font-bold text-white hover:bg-teal disabled:opacity-30 disabled:cursor-not-allowed"
+                prop.onClick (fun _ -> stop() )
+                prop.text "Stop fastapi timer"
+            ]
+            Html.span model.FastAPIMessage
         ]
     ]
 
@@ -127,7 +182,8 @@ let view model dispatch =
                     ]
                     todoList model dispatch
                     websocket model dispatch
-                   
+                    fastapi model dispatch
+                    FastapiBridge model dispatch
                 ]
             ]
         ]

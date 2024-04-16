@@ -9,9 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.fantomasignore = .fantomasignore
 		.gitignore = .gitignore
 		.npmrc = .npmrc
+		build.cmd = build.cmd
+		fastapi.cmd = fastapi.cmd
 		package.json = package.json
 		paket.dependencies = paket.dependencies
 		README.md = README.md
+		setup.cmd = setup.cmd
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F84DCF8A-FC1A-4677-AF4D-616AD7DB3470}"
@@ -30,7 +33,18 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Server.Tests", "tests\Serve
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Client.Tests", "tests\Client\Client.Tests.fsproj", "{CF8C20AC-1FC4-4114-ACB8-6CE6E51F34F9}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Build", "Build.fsproj", "{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Build", "build\Build.fsproj", "{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FastAPI", "FastAPI", "{AFE9940A-9936-45E9-B619-AC97FF4C86C6}"
+	ProjectSection(SolutionItems) = preProject
+		src\FastAPI\README.md = src\FastAPI\README.md
+		src\FastAPI\requirements.txt = src\FastAPI\requirements.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{2FA8B650-E2A9-4581-BAB6-CB95C4BC9CFC}"
+	ProjectSection(SolutionItems) = preProject
+		src\FastAPI\app\main.py = src\FastAPI\app\main.py
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -114,18 +128,18 @@ Global
 		{CF8C20AC-1FC4-4114-ACB8-6CE6E51F34F9}.Release|x64.Build.0 = Release|Any CPU
 		{CF8C20AC-1FC4-4114-ACB8-6CE6E51F34F9}.Release|x86.ActiveCfg = Release|Any CPU
 		{CF8C20AC-1FC4-4114-ACB8-6CE6E51F34F9}.Release|x86.Build.0 = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|x64.Build.0 = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Debug|x86.Build.0 = Debug|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|x64.ActiveCfg = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|x64.Build.0 = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|x86.ActiveCfg = Release|Any CPU
-		{C0244434-EC34-4D74-93A9-0E00DEC0C4D1}.Release|x86.Build.0 = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|x64.Build.0 = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Debug|x86.Build.0 = Debug|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|x64.ActiveCfg = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|x64.Build.0 = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|x86.ActiveCfg = Release|Any CPU
+		{C6FFA7FF-B5B4-46EF-95FD-9D0BFD0F0823}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,5 +151,10 @@ Global
 		{87197987-1524-4E8A-A7CB-4440BD22A395} = {3820D9E8-1B4E-486E-9C46-D52E3784D222}
 		{9ADB89B5-54DA-4F25-B2D0-013A7FCEFABA} = {3820D9E8-1B4E-486E-9C46-D52E3784D222}
 		{CF8C20AC-1FC4-4114-ACB8-6CE6E51F34F9} = {3820D9E8-1B4E-486E-9C46-D52E3784D222}
+		{AFE9940A-9936-45E9-B619-AC97FF4C86C6} = {F84DCF8A-FC1A-4677-AF4D-616AD7DB3470}
+		{2FA8B650-E2A9-4581-BAB6-CB95C4BC9CFC} = {AFE9940A-9936-45E9-B619-AC97FF4C86C6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {30515346-144A-4E35-83BF-7B8F0880DEBD}
 	EndGlobalSection
 EndGlobal

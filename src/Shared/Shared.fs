@@ -27,6 +27,9 @@ module EndPoints =
     [<Literal>]
     let clientEndpoint = "ws://" + siteDomain + endpoint
 
+    [<Literal>]
+    let fastApiBrideEndpoint = "ws://localhost:8000/ws"
+
 module Route =
     let clientBuilder typeName methodName =
         sprintf "%s/api/%s/%s" EndPoints.siteUrl typeName methodName
@@ -51,9 +54,13 @@ module ClientToServer =
     | StartTimer
     | StopTimer
 
-
+type HelloWorld = {
+    message: string
+}
 
 type ITodosApi = {
     getTodos: unit -> Async<Todo list>
     addTodo: Todo -> Async<Todo>
+    /// This is a hello world example for Client -> Server -> fastapi -> Server -> Client
+    getHelloWorld: unit -> Async<HelloWorld>
 }

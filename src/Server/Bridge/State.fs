@@ -20,6 +20,10 @@ type Model = {
             Start = None
             Timer = None
         }
+    member this.DisposeTimer() =
+        match this with
+        | {Timer = Some timer} -> timer.Stop(); timer.Dispose()
+        | _ -> ()
 
 let init(clientDisaptch:Dispatch<ServerToClient.Msg>) () =
     clientDisaptch ServerToClient.ServerConnected
@@ -37,13 +41,13 @@ let update (clientDispatch:Dispatch<ServerToClient.Msg>) (msg: Msg) (model: Mode
         clientDispatch (ServerToClient.TellTime <| diff.ToString())
         model, Cmd.none
     | Reset ->
-        match model.Timer with
-        | Some timer -> timer.Dispose()
-        | None -> ()
+        printBridge "---CLOSED---"
+        model.DisposeTimer()
         Model.init(), Cmd.none
     | Remote msg ->
         match msg with
         | ClientToServer.StartTimer ->
+            model.DisposeTimer()
             let timer = new Timer(100.)
             let nextModel = 
                 {
@@ -60,13 +64,9 @@ let update (clientDispatch:Dispatch<ServerToClient.Msg>) (msg: Msg) (model: Mode
         | ClientToServer.StopTimer ->
             match model.Timer with
             | Some timer ->
-                timer.Stop()
-                timer.Dispose()
-                {model with Timer = None}, Cmd.none
+                model.DisposeTimer()
+                Model.init(), Cmd.none
             | None ->
                 model, Cmd.none
-        |> fun (model, cmd) ->
-            printBridge "%A" model
-            model, cmd
 
 

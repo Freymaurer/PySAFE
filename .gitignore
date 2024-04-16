@@ -18,3 +18,5 @@ release.sh
 *.orig
 *.fsproj.user
 *.DotSettings.user
+/.venv
+/src/FastAPI/app/__pycache__

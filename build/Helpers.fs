@@ -88,6 +88,25 @@ let npm args dir =
 
     createProcess npmPath args dir
 
+let python = createProcess ".venv/Scripts/python.exe"
+
+let pip args wd =
+    python ("-m"::"pip"::args) wd
+
+let uvicorn msg wd = python ("-m"::"uvicorn"::msg) wd
+
+let docker (args) wd =
+    let path =
+        match ProcessUtils.tryFindFileOnPath "docker" with
+        | Some path -> path
+        | None ->
+            "docker was not found in path. Please install it and make sure it's available from your path. "
+            |> failwith
+
+    createProcess path args wd
+
+let dockerCompose (args) wd = createProcess "docker-compose" args wd
+
 let run proc arg dir = proc arg dir |> Proc.run |> ignore
 
 let runParallel processes =

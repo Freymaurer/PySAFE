@@ -14,6 +14,7 @@ let deployPath = Path.getFullName "deploy"
 let sharedTestsPath = Path.getFullName "tests/Shared"
 let serverTestsPath = Path.getFullName "tests/Server"
 let clientTestsPath = Path.getFullName "tests/Client"
+let fastApiPath = Path.getFullName "./src/FastApi"
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDir deployPath
@@ -22,6 +23,10 @@ Target.create "Clean" (fun _ ->
 
 Target.create "InstallClient" (fun _ -> run npm [ "install" ] ".")
 
+Target.create "InstallApi" (fun _ -> run pip ["install"; "--no-cache-dir"; "--upgrade"; "-r"; "requirements.txt"] fastApiPath)
+
+Target.create "Install" (fun _ -> ())
+
 Target.create "Bundle" (fun _ ->
     [
         "server", dotnet [ "publish"; "-c"; "Release"; "-o"; deployPath ] serverPath
@@ -29,29 +34,17 @@ Target.create "Bundle" (fun _ ->
     ]
     |> runParallel)
 
-Target.create "Azure" (fun _ ->
-    let web = webApp {
-        name "SAFE-App"
-        operating_system OS.Linux
-        runtime_stack (DotNet "8.0")
-        zip_deploy "deploy"
-    }
-
-    let deployment = arm {
-        location Location.WestEurope
-        add_resource web
-    }
-
-    deployment |> Deploy.execute "SAFE-App" Deploy.NoParameters |> ignore)
-
 Target.create "Run" (fun _ ->
     run dotnet [ "build" ] sharedPath
-
     [
         "server", dotnet [ "watch"; "run" ] serverPath
         "client", dotnet [ "fable"; "watch"; "-o"; "output"; "-s"; "--run"; "npx"; "vite" ] clientPath
     ]
     |> runParallel)
+
+Target.create "fastapi" (fun _ ->
+    run uvicorn ["app.main:app"; "--reload"; "--log-level"; "trace"] fastApiPath
+)
 
 Target.create "RunTests" (fun _ ->
     run dotnet [ "build" ] sharedTestsPath
@@ -67,9 +60,10 @@ Target.create "Format" (fun _ -> run dotnet [ "fantomas"; "." ] ".")
 open Fake.Core.TargetOperators
 
 let dependencies = [
-    "Clean" ==> "InstallClient" ==> "Bundle" ==> "Azure"
 
-    "Clean" ==> "InstallClient" ==> "Run"
+    "Clean" ==> "InstallClient" ==> "InstallApi" ==> "Install"
+
+    "Clean" ==> "Run"
 
     "InstallClient" ==> "RunTests"
 ]

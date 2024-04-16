@@ -32,6 +32,7 @@ let todosApi = {
                 | Ok() -> todo
                 | Error e -> failwith e
         }
+    getHelloWorld = fun () -> async {return! PythonService.helloWorldHandler()}
 }
 
 let server =

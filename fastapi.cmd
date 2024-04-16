@@ -1,0 +1,1 @@
+CALL ".venv/Scripts/python.exe" -m uvicorn src.FastAPI.app.main:app --reload

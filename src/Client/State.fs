@@ -3,17 +3,21 @@ module State
 open Shared
 
 type Model = {
-    ServerConnected: bool
     Todos: Todo list;
     Input: string
+    // websocket
+    ServerConnected: bool
     CurrentTimerValue: string
+    // fastapi
+    FastAPIMessage: string
 } with
     static member init() =
         {
-            ServerConnected = false
             Todos = []
             Input = ""
+            ServerConnected = false
             CurrentTimerValue = ""
+            FastAPIMessage = ""
         }
 
 type Msg =
@@ -24,3 +28,5 @@ type Msg =
     /// These are incoming websocket messages
     | Remote of ServerToClient.Msg
     | SetCurrentTime of string
+    | GetFastAPIMessage
+    | GetFastAPIMessageResponse of HelloWorld
