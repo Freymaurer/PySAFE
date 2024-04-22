@@ -43,7 +43,7 @@ Target.create "Run" (fun _ ->
     |> runParallel)
 
 Target.create "fastapi" (fun _ ->
-    run uvicorn ["app.main:app"; "--reload"; "--log-level"; "trace"] fastApiPath
+    run uvicorn ["app.main:app"; "--reload"] fastApiPath
 )
 
 Target.create "RunTests" (fun _ ->
