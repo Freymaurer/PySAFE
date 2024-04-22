@@ -4,6 +4,7 @@ storage: none
 
 nuget Elmish.Bridge.Giraffe 7.0.0
 nuget Feliz.DaisyUI
+nuget Feliz.Router 4.0.0
 nuget FSharp.Core ~> 8
 nuget Fable.Remoting.Giraffe ~> 5
 nuget Saturn ~> 0
@@ -22,3 +23,4 @@ nuget Feliz ~> 2
 nuget Fake.Core.Target ~> 5
 nuget Fake.IO.FileSystem ~> 5
 nuget Farmer ~> 1
+nuget Zanaptak.TypedCssClasses
