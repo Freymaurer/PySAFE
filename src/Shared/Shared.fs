@@ -37,23 +37,6 @@ module Route =
     let builder typeName methodName =
         sprintf "/api/%s/%s" typeName methodName 
 
-module ServerToClient =
-
-    type Msg =
-    | ServerConnected
-    | TellTime of string
-    | Error of exn
-
-
-module ClientToServer =
-
-    open Elmish.Bridge.RPC
-
-    type Msg =
-    //| AskTime of unit * IReplyChannel<string>
-    | StartTimer
-    | StopTimer
-
 type HelloWorld = {
     message: string
 }

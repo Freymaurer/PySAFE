@@ -26,7 +26,6 @@ type Msg =
     | AddTodo
     | AddedTodo of Todo
     /// These are incoming websocket messages
-    | Remote of ServerToClient.Msg
     | SetCurrentTime of string
     | GetFastAPIMessage
     | GetFastAPIMessageResponse of HelloWorld

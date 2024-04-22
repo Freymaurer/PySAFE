@@ -8,8 +8,6 @@
         <Compile Include="Util.fs" />
         <Compile Include="State.fs" />
         <Compile Include="Bridge\FastAPI.fs" />
-        <Compile Include="Bridge\State.fs" />
-        <Compile Include="Bridge\AskQueries.fs" />
         <None Include="postcss.config.js" />
         <None Include="tailwind.config.js" />
         <None Include="index.html" />

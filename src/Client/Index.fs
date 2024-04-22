@@ -35,8 +35,6 @@ let update msg model =
         },
         Cmd.none
     | SetCurrentTime v -> {model with CurrentTimerValue = v}, Cmd.none
-    | Remote stcMsg ->
-        Bridge.State.update stcMsg model
     | GetFastAPIMessage ->
         let cmd =
             Cmd.OfAsync.perform
@@ -90,26 +88,6 @@ let private todoList model dispatch =
             ]
 
             todoAction model dispatch
-        ]
-    ]
-
-let private websocket (model: Model) dispatch =
-    Html.div [
-        prop.className "bg-white/80 rounded-md shadow-md p-4 w-5/6 lg:w-3/4 lg:max-w-2xl mb-2"
-        prop.children [
-            Html.button [
-                prop.className
-                    "flex-no-shrink p-2 px-12 rounded bg-teal-600 outline-none focus:ring-2 ring-teal-300 font-bold text-white hover:bg-teal disabled:opacity-30 disabled:cursor-not-allowed"
-                prop.onClick (fun _ -> Bridge.Send ClientToServer.StartTimer)
-                prop.text "Start timer"
-            ]
-            Html.button [
-                prop.className
-                    "flex-no-shrink p-2 px-12 rounded bg-teal-600 outline-none focus:ring-2 ring-teal-300 font-bold text-white hover:bg-teal disabled:opacity-30 disabled:cursor-not-allowed"
-                prop.onClick (fun _ -> Bridge.Send ClientToServer.StopTimer)
-                prop.text "Stop Timer"
-            ]
-            Html.span model.CurrentTimerValue
         ]
     ]
 
@@ -181,7 +159,6 @@ let view model dispatch =
                         prop.text "PySAFE"
                     ]
                     todoList model dispatch
-                    websocket model dispatch
                     fastapi model dispatch
                     FastapiBridge model dispatch
                 ]

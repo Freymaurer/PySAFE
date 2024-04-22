@@ -35,12 +35,6 @@ let todosApi = {
     getHelloWorld = fun () -> async {return! PythonService.helloWorldHandler()}
 }
 
-let server =
-    Bridge.mkServer Shared.EndPoints.endpoint Bridge.State.init Bridge.State.update
-    |> Bridge.withConsoleTrace
-    |> Bridge.whenDown Bridge.State.Reset
-    |> Bridge.run Giraffe.server
-
 let createTodosApi =
     Remoting.createApi ()
     |> Remoting.withRouteBuilder Route.builder
@@ -49,7 +43,6 @@ let createTodosApi =
 
 let webApp =
     choose [
-        server
         createTodosApi
     ]
 
