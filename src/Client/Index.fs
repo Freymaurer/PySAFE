@@ -87,7 +87,7 @@ type View =
             router.onUrlChanged (Pages.fromRoute >> updatePage)
             router.children [
                 Html.section [
-                    prop.className "h-screen w-screen flex flex-col"
+                    prop.className "h-screen w-screen flex flex-col min-h-screen min-w-screen overflow-x-hidden"
                     prop.ref ref
                     prop.children [
                         Components.HeadBanner.Main()

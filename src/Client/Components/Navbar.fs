@@ -9,13 +9,16 @@ type Navbar =
     static member private NavbarLink (page: Routing.Pages) =
         let segs = page.ToRoute() |> List.ofArray
         let isCurrentPage = Router.currentUrl() = segs
-        log (segs, isCurrentPage)
         Html.li [
-            if isCurrentPage then
-                prop.className "bg-base-200 text-white"
             prop.children [
                 Html.a [
-                    prop.className "active:text-red"
+                    prop.className [
+                        if isCurrentPage then
+                            "active";
+                            "!text-white"
+                        "text-black"
+                        "rounded-none"
+                    ]
                     prop.href (page.ToRoute() |> Router.format)
                     prop.text (page.ToStringRdb())
                 ]
@@ -34,7 +37,7 @@ type Navbar =
         ]
 
         Daisy.navbar [
-            prop.className "bg-white sticky"
+            prop.className "bg-white sticky z-50 top-0"
             prop.children [
                 Daisy.navbarStart [
                     Daisy.dropdown [
@@ -61,11 +64,11 @@ type Navbar =
                             ]
                         ]
                         Daisy.dropdownContent [
-                            prop.className "menu menu-sm mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                            prop.className "menu menu-sm mt-3 z-[1] p-2 shadow rounded-box w-52 bg-white"
                             prop.tabIndex 0
-                            items
-                            |> List.map Navbar.NavbarLink
-                            |> prop.children 
+                            prop.children [
+                                for item in items do Navbar.NavbarLink item
+                            ]
                         ]
                     ]
                     Daisy.button.a [
@@ -80,10 +83,11 @@ type Navbar =
                     prop.className "hidden lg:flex"
                     prop.children [
                         Daisy.menu [
+                            prop.className "px-1 gap-2"
                             menu.horizontal
                             items
                             |> List.map (Navbar.NavbarLink)
-                            |> prop.children 
+                            |> prop.children
                         ]
                     ]
                 ]
