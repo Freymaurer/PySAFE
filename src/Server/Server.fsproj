@@ -6,9 +6,9 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="Environment.fs" />
     <Compile Include="PythonService.fs" />
-    <None Include="paket.references" />
     <Compile Include="Server.fs" />
   </ItemGroup>
   <ItemGroup>

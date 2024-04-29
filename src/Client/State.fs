@@ -3,28 +3,22 @@ module State
 open Shared
 
 type Model = {
-    Todos: Todo list;
-    Input: string
+    Version: string
     // websocket
     ServerConnected: bool
     CurrentTimerValue: string
     // fastapi
     FastAPIMessage: string
 } with
-    static member init() =
-        {
-            Todos = []
-            Input = ""
+    static member init() = {
+            Version = ""
             ServerConnected = false
             CurrentTimerValue = ""
             FastAPIMessage = ""
         }
 
 type Msg =
-    | GotTodos of Todo list
-    | SetInput of string
-    | AddTodo
-    | AddedTodo of Todo
+    | UpdateVersion of string
     /// These are incoming websocket messages
     | SetCurrentTime of string
     | GetFastAPIMessage
@@ -33,39 +27,31 @@ type Msg =
 open Elmish
 open Fable.Remoting.Client
 
-let todosApi =
+let predictionApi =
     Remoting.createApi ()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.buildProxy<ITodosApi>
+    |> Remoting.buildProxy<IPredictionApiv1>
+
+let appApi =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.buildProxy<IAppApiv1>
 
 let init () =
     let model = Model.init()
-    let cmd = Cmd.OfAsync.perform todosApi.getTodos () GotTodos
+    let cmd = Cmd.none
     model, cmd
 
 let update msg model =
     match msg with
-    | GotTodos todos -> { model with Todos = todos }, Cmd.none
-    | SetInput value -> { model with Input = value }, Cmd.none
-    | AddTodo ->
-        let todo = Todo.create model.Input
-
-        let cmd = Cmd.OfAsync.perform todosApi.addTodo todo AddedTodo
-
-        { model with Input = "" }, cmd
-    | AddedTodo todo ->
-        {
-            model with
-                Todos = model.Todos @ [ todo ]
-        },
-        Cmd.none
+    | UpdateVersion v -> {model with Version = v}, Cmd.none
     | SetCurrentTime v -> {model with CurrentTimerValue = v}, Cmd.none
     | GetFastAPIMessage ->
         let cmd =
             Cmd.OfAsync.perform
-                todosApi.getHelloWorld
+                appApi.GetVersion
                 ()
-                GetFastAPIMessageResponse
+                UpdateVersion
         model, cmd
     | GetFastAPIMessageResponse hw ->
         let nextModel = {model with FastAPIMessage = hw.message}

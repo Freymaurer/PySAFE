@@ -3,7 +3,6 @@ module App
 open Elmish
 open Elmish.React
 open Fable.Core.JsInterop
-open Elmish.Bridge
 open State
 
 open Feliz

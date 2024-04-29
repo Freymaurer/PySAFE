@@ -4,7 +4,6 @@ open Elmish
 open Fable.Remoting.Client
 open Shared
 open State
-open Elmish.Bridge
 open Feliz
 open Feliz.DaisyUI
 
@@ -95,6 +94,16 @@ type View =
                         Html.div [
                             prop.className "flex flex-col flex-grow"
                             prop.children [
+                                Daisy.button.button [
+                                    prop.onClick(fun e ->
+                                        async {
+                                            let! guid = predictionApi.StartEvaluation {|Hello = "World"|}
+                                            log(guid)
+                                        }
+                                        |> Async.StartImmediate
+                                    )
+                                    prop.text "Test"
+                                ]
                                 match page with
                                 | Main -> Pages.Main.Main()
                                 | About -> Html.div "About"

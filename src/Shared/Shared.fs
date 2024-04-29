@@ -4,6 +4,8 @@ open System
 
 type Todo = { Id: Guid; Description: string }
 
+type Data = obj
+
 module Todo =
     let isValid (description: string) =
         String.IsNullOrWhiteSpace description |> not
@@ -29,21 +31,24 @@ module EndPoints =
 
     [<Literal>]
     let fastApiBrideEndpoint = "ws://localhost:8000/ws"
+    let fastApiBrideEndpointURI = Uri(fastApiBrideEndpoint)
 
 module Route =
     let clientBuilder typeName methodName =
         sprintf "%s/api/%s/%s" EndPoints.siteUrl typeName methodName
 
     let builder typeName methodName =
-        sprintf "/api/%s/%s" typeName methodName 
+        sprintf "/api/%s/%s" typeName methodName
 
 type HelloWorld = {
     message: string
 }
 
-type ITodosApi = {
-    getTodos: unit -> Async<Todo list>
-    addTodo: Todo -> Async<Todo>
-    /// This is a hello world example for Client -> Server -> fastapi -> Server -> Client
-    getHelloWorld: unit -> Async<HelloWorld>
+type IAppApiv1 = {
+    GetVersion: unit -> Async<string>
+    Log: unit -> Async<unit>
+}
+
+type IPredictionApiv1 = {
+    StartEvaluation: Data -> Async<Guid>
 }

@@ -2,7 +2,6 @@ source https://api.nuget.org/v3/index.json
 framework: net8.0
 storage: none
 
-nuget Elmish.Bridge.Giraffe 7.0.0
 nuget Feliz.DaisyUI
 nuget Feliz.Router 4.0.0
 nuget FSharp.Core ~> 8
@@ -17,10 +16,10 @@ nuget Fable.Elmish.Debugger ~> 4
 nuget Fable.Elmish.HMR ~> 7
 nuget Fable.Mocha ~> 2
 nuget Fable.Remoting.Client ~> 7
-nuget Elmish.Bridge.Client 7.0.2
 nuget Feliz ~> 2
 
 nuget Fake.Core.Target ~> 5
 nuget Fake.IO.FileSystem ~> 5
 nuget Farmer ~> 1
+nuget Websocket.Client 5.1.1
 nuget Zanaptak.TypedCssClasses

@@ -18,7 +18,7 @@ let defaultConfig  (elementId: string) =
 
 [<AllowNullLiteral>]
 type IVanta =
-    member this.destroy() = jsNative
+    member this.destroy() = nativeOnly
 
     interface IDisposable with
         member this.Dispose() =
