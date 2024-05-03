@@ -36,6 +36,16 @@ let predictionAPIv1: IPredictionApiv1 = {
             PythonService.subscribeWebsocket guid data
             return guid
         }
+    GetStatus = fun id ->
+        async {
+            match PythonService.tryGetStatus id with
+            | Some status ->
+                printfn "OK %A" (status)
+                return status
+            | None ->
+                printfn "Error --"
+                return DataResponseStatus.Error ("No status found")
+        }
 }
 
 let createAppApi =

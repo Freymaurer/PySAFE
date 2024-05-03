@@ -1,7 +1,9 @@
 module Routing
 
 type Pages =
+/// Predictor
 | Main
+| DataAccess
 | About
 | PrivacyPolicy
 | Contact
@@ -10,6 +12,7 @@ type Pages =
     member this.ToRoute() = 
         match this with
         | Main -> [||]
+        | DataAccess -> [| "data" |]
         | About -> [| "about" |]
         | PrivacyPolicy -> [| "privacy" |]
         | Contact -> [|"contact"|]
@@ -18,6 +21,7 @@ type Pages =
     static member fromRoute (route: string list) =
         match route with
         | [ "about" ] -> About
+        | [ "data" ] -> DataAccess
         | [ "privacy" ] -> PrivacyPolicy
         | [ "contact" ] -> Contact
         | [ "predictor" ] | ["main"] | [] | ["/"] -> Main
@@ -26,6 +30,7 @@ type Pages =
     member this.ToStringRdb() =
         match this with
         | Main -> "Predictor"
+        | DataAccess -> "Data Access"
         | About -> "About"
         | PrivacyPolicy -> "Privacy Policy"
         | Contact -> "Contact"

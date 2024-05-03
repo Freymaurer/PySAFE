@@ -15,6 +15,8 @@
         <None Include="postcss.config.js" />
         <None Include="tailwind.config.js" />
         <None Include="paket.references" />
+        <Compile Include="ReactContext.fs" />
+        <Compile Include="Components\MainCard.fs" />
         <Compile Include="Components\Help.fs" />
         <Compile Include="Components\Vanta.fs" />
         <Compile Include="Components\HeadBanner.fs" />
@@ -24,6 +26,7 @@
         <Compile Include="Pages\Predictor\Settings.fs" />
         <Compile Include="Pages\Predictor\Runner.fs" />
         <Compile Include="Pages\Main.fs" />
+        <Compile Include="Pages\DataAccess.fs" />
         <Compile Include="Index.fs" />
         <Compile Include="App.fs" />
         <None Include="vite.config.mts" />

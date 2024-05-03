@@ -5,6 +5,7 @@ open Feliz.DaisyUI
 open Fable.Core
 open Fable.Core.JsInterop
 open Shared
+open Feliz.Router
 
 open Pages.Predictor
 
@@ -39,12 +40,29 @@ type Main =
             prop.className "text-black mt-auto"
             prop.children [
                 Daisy.divider []
-                Daisy.steps [
-                    prop.className "w-full"
+                Html.div [
+                    prop.className "flex justify-between items-center gap-3 max-sm:flex-col-reverse"
                     prop.children [
-                        Main.Step(Steps.DataInput, step, setStep)
-                        Main.Step(Steps.Settings, step, setStep)
-                        Main.Step(Steps.Running, step, setStep)
+                        Daisy.tooltip [
+                            prop.custom("data-tip", "Access Commissioned Data")
+                            prop.className "max-sm:w-full"
+                            prop.children [
+                                Daisy.button.a [
+                                    prop.className "max-sm:w-[80%]"
+                                    button.neutral
+                                    prop.text "Data"
+                                    prop.href (Routing.DataAccess.ToRoute() |> Router.format)
+                                ]
+                            ]
+                        ]
+                        Daisy.steps [
+                            prop.className "w-full"
+                            prop.children [
+                                Main.Step(Steps.DataInput, step, setStep)
+                                Main.Step(Steps.Settings, step, setStep)
+                                Main.Step(Steps.Running, step, setStep)
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -63,30 +81,15 @@ type Main =
             if step = Steps.Canceled then
                 reset()
             else setStep0 step
-        Html.div [
-            prop.id "main-predictor"
-            prop.className "flex flex-grow p-2 sm:p-10 justify-center"
-            prop.children [
-                Daisy.card [
-                    prop.className "bg-white/[.95] text-black h-fit min-w-[350px] md:w-[70%] min-h-[80%]"
-                    card.bordered
-                    prop.children [
-                        Daisy.cardBody [
-                            prop.className "h-full w-full flex flex-col"
-                            prop.children [
-                                match step with
-                                | Steps.DataInput ->
-                                    Pages.Predictor.DataInput.Main(data, setData, setStep, datasrc, setDatasrc)
-                                | Steps.Settings ->
-                                    Pages.Predictor.Settings.Main(data, setData, setStep)
-                                | Steps.Running ->
-                                    Pages.Predictor.Runner.Main(data, setData, setStep)
-                                | _ -> Html.div "not implemted"
-                                Main.Steps(step, setStep)
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+        Components.MainCard.Main [
+            match step with
+            | Steps.DataInput ->
+                Pages.Predictor.DataInput.Main(data, setData, setStep, datasrc, setDatasrc)
+            | Steps.Settings ->
+                Pages.Predictor.Settings.Main(data, setData, setStep)
+            | Steps.Running ->
+                Pages.Predictor.Runner.Main(data, setData, setStep)
+            | _ -> Html.div "not implemted"
+            Main.Steps(step, setStep)
         ]
 

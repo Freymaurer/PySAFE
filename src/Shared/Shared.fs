@@ -37,4 +37,5 @@ type IAppApiv1 = {
 
 type IPredictionApiv1 = {
     StartEvaluation: DataInput -> Async<Guid>
+    GetStatus: Guid -> Async<DataResponseStatus>
 }

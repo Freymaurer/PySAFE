@@ -31,6 +31,7 @@ type Navbar =
 
         let items = [
             Routing.Pages.Main
+            Routing.Pages.DataAccess
             Routing.Pages.About
             Routing.Pages.PrivacyPolicy
             Routing.Pages.Contact

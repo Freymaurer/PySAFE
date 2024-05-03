@@ -53,6 +53,9 @@ type ResultType = {
     Batch: int
 }
 
+let tryGetStatus (id: System.Guid) =
+    Storage.Storage.TryGet(id) |> Option.map _.Status
+
 let subscribeWebsocket (id: System.Guid) (data: DataInput) =
     let dataResponse0 = DataResponse.init(id, data)
     Storage.Storage.Set(id, dataResponse0)
@@ -92,7 +95,7 @@ let subscribeWebsocket (id: System.Guid) (data: DataInput) =
                     let responseData: ResultType = Json.JsonSerializer.Deserialize<ResultType>(msg.Data :?> Json.JsonElement)
                     Storage.Storage.Update(id,fun current ->
                         { current with
-                            Status = MLRunning(responseData.Batch)
+                            Status = DataResponseStatus.MLRunning(responseData.Batch)
                             ResultData =
                                 let newData = responseData.Results |> List.map DataResponseItem.init
                                 newData@current.ResultData

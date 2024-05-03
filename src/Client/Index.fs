@@ -115,6 +115,7 @@ type View =
                                 //]
                                 match page with
                                 | Main -> Pages.Main.Main()
+                                | DataAccess -> Pages.DataAccess.Main()
                                 | About -> Html.div "About"
                                 | Contact -> Html.div "Contact"
                                 | PrivacyPolicy -> Html.div "Privacy Policy"

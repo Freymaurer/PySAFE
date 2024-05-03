@@ -12,6 +12,9 @@ type CacheManager() =
         o
     let cache = new MemoryCache(options)
     member this.Get(key: Guid) = cache.Get<DataResponse>(key) 
+    member this.TryGet(key: Guid) : DataResponse option =
+        let exists, item = cache.TryGetValue<DataResponse>(key)
+        if exists then Some item else None
     member this.Set(key: Guid, value: DataResponse) = cache.Set(key, value, Environment.python_service_storage_timespan) |> ignore
     member this.Update(key: Guid, f: DataResponse -> DataResponse) =
         let value = cache.Get<DataResponse>(key)

@@ -26,6 +26,7 @@ type DataInput = {
         Config = DataInputConfig.init()
     }
 
+[<RequireQualifiedAccess>]
 type DataResponseStatus =
 | Starting
 | MLRunning of int
@@ -48,7 +49,11 @@ type DataResponse = {
     member this.AllItemsProcessed = this.ResultData.Length = this.InitData.Items.Length
     static member init(guid, data) = {
         Id = guid
-        Status = Starting
+        Status = DataResponseStatus.Starting
         InitData = data
         ResultData = []
     }
+
+type DataResponseDTO = {
+    Status: DataResponseStatus
+}

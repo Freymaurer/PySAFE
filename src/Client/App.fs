@@ -29,8 +29,15 @@ let update (msg: Msg) (model: Model) =
 
 [<ReactComponent>]
 let private Main (model) dispatch =
+    let modalContainer = React.useElementRef()
     React.strictMode [
-        App.View.Main model dispatch
+        React.contextProvider(ReactContext.modalContext, modalContainer, React.fragment [
+            Html.div [
+                prop.id "modal-container"
+                prop.ref modalContainer
+            ]
+            App.View.Main model dispatch
+        ])
     ]
 
 importSideEffects "./index.css"
