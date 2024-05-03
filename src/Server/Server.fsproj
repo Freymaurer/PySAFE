@@ -8,6 +8,8 @@
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="Environment.fs" />
+    <Compile Include="Analysis.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="PythonService.fs" />
     <Compile Include="Server.fs" />
   </ItemGroup>

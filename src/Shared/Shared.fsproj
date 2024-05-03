@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Data.fs" />
+    <Compile Include="ValidateData.fs" />
     <Compile Include="Shared.fs" />
     <Content Include="paket.references" />
   </ItemGroup>

@@ -2,20 +2,6 @@ namespace Shared
 
 open System
 
-type Todo = { Id: Guid; Description: string }
-
-type Data = obj
-
-module Todo =
-    let isValid (description: string) =
-        String.IsNullOrWhiteSpace description |> not
-
-    let create (description: string) = {
-        Id = Guid.NewGuid()
-        Description = description
-    }
-
-
 module EndPoints =
     [<Literal>]
     let endpoint = "/bridge"
@@ -30,7 +16,7 @@ module EndPoints =
     let clientEndpoint = "ws://" + siteDomain + endpoint
 
     [<Literal>]
-    let fastApiBrideEndpoint = "ws://localhost:8000/ws"
+    let fastApiBrideEndpoint = "ws://localhost:8000/dataml"
     let fastApiBrideEndpointURI = Uri(fastApiBrideEndpoint)
 
 module Route =
@@ -50,5 +36,5 @@ type IAppApiv1 = {
 }
 
 type IPredictionApiv1 = {
-    StartEvaluation: Data -> Async<Guid>
+    StartEvaluation: DataInput -> Async<Guid>
 }

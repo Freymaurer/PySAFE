@@ -12,3 +12,15 @@ module StaticFile =
 
     /// Function that imports a static file by it's relative path.
     let inline import (path: string) : string = importDefault<string> path
+
+open Fable.Core
+
+type Clipboard =
+    abstract member writeText: string -> JS.Promise<unit>
+    abstract member readText: unit -> JS.Promise<string>
+
+type Navigator =
+    abstract member clipboard: Clipboard
+
+[<Emit("navigator")>]
+let navigator : Navigator = jsNative

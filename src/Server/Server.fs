@@ -16,31 +16,22 @@ open System.Net.WebSockets
 open Microsoft.Extensions.Configuration
 open System.Threading.Tasks
 
-/// full c# websocket example: https://medium.com/bina-nusantara-it-division/implementing-websocket-client-and-server-on-asp-net-core-6-0-c-4fbda11dbceb
-/// exmaple using websocket.client: https://medium.com/nerd-for-tech/your-first-c-websocket-client-5e7acc30681d
-
 [<LiteralAttribute>]
 let AppVersion = "0.0.1"
 
-module Storage =
-    let Uri = Uri(Shared.EndPoints.fastApiBrideEndpoint)
-    let guids = Dictionary<Guid,obj>()
-    let generateNewGuid() =
-        let existingGuids = guids.Keys
-        let rec generate () =
-            let nextGuid = System.Guid.NewGuid()
-            if existingGuids.Contains nextGuid then generate() else nextGuid
-        generate()
-
-
 let appAPIv1: IAppApiv1 = {
     GetVersion = fun () -> async { return AppVersion }
-    Log = fun () -> async { printfn "%A" Storage.guids; return () }
+    Log = fun () -> async {
+        printfn "--LOG_START--"
+        Storage.Storage.Get(Environment.TestGUID) |> printfn "%A"
+        printfn "--LOG_END--"
+        return ()
+    }
 }
 
 let predictionAPIv1: IPredictionApiv1 = {
     StartEvaluation = fun data ->
-        let guid = Storage.generateNewGuid()
+        let guid = Environment.TestGUID//Storage.generateNewGuid()
         async {
             PythonService.subscribeWebsocket guid data
             return guid
@@ -66,14 +57,10 @@ let webApp =
     ]
 
 let configureApp (app : IApplicationBuilder) =
-    // Add Giraffe to the ASP.NET Core pipeline
     app.UseGiraffe webApp
     app
-    // app.UseWebSockets()
 
 let configureServices (services : IServiceCollection) =
-    // Add Giraffe dependencies
-    // services.AddWebSockets(fun o -> ()) |> ignore
     services.AddGiraffe() |> ignore
     services
 

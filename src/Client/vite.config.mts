@@ -17,11 +17,11 @@ export default defineConfig({
             "/api/": {
                 target: proxyTarget,
                 changeOrigin: true,
-            },
-            "/bridge": {
-                target: "ws://localhost:" + proxyPort,
-                ws: true,
-            },
+            }
+            //"/bridge": {
+            //    target: "ws://localhost:" + proxyPort,
+            //    ws: true,
+            //},
         }
     }
 });

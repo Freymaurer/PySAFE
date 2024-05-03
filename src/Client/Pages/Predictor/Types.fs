@@ -13,3 +13,11 @@ module Steps =
         | Steps.Settings  -> "Settings"
         | Steps.Running   -> "Run"
         | _ -> ""
+
+type DataSrc =
+    | File of string
+    | Text of string
+    member this.Value =
+        match this with
+        | File s -> s
+        | Text s -> s
