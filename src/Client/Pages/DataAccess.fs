@@ -23,6 +23,23 @@ type private AccessStatusStatus =
         | Success (DataResponseStatus.Error s) -> Some s
         | _ -> None
 
+[<RequireQualifiedAccess>]
+type FlipStates =
+    | On
+    | Off
+    | Indeterminate
+    | SomeonesGod
+    member this.Next() =
+        let rdnNumber = System.Random().Next(1,101)
+        match rdnNumber, this with
+        | 100, _ -> SomeonesGod
+        | _, On -> Off
+        | _, Off -> Indeterminate
+        | _, Indeterminate -> On
+        | _, SomeonesGod -> On
+
+open Fable.Core.JsInterop
+
 type DataAccess =
     [<ReactComponent>]
     static member private ErrorModal(msg: string, setStatus) =
@@ -58,7 +75,7 @@ type DataAccess =
 
     static member private AccessForm(status: AccessStatusStatus, id: string, setId: string -> unit, submitId: string -> unit) =
         Daisy.formControl [
-            prop.className "flex flex-col flex-grow"
+            prop.className "flex flex-col"
             prop.children [
                 Daisy.join [
                     Html.div [
@@ -96,11 +113,47 @@ type DataAccess =
                 ]
             ]
         ]
+
+    [<ReactComponent>]
+    static member PeriodicFlip() =
+        let toggle, setToggle = React.useState(FlipStates.On)
+        let checkbox = React.useElementRef()
+        let activateToggle() =
+            let next = toggle.Next()
+            setToggle next
+            match next with
+            | FlipStates.SomeonesGod | FlipStates.Off ->
+                checkbox.current.Value?indeterminate <- false
+                checkbox.current.Value?``checked`` <- false
+            | FlipStates.On ->
+                checkbox.current.Value?indeterminate <- false
+                checkbox.current.Value?``checked`` <- true
+            | FlipStates.Indeterminate ->
+                checkbox.current.Value?indeterminate <- true
+        React.useLayoutEffect(fun () ->
+            let id = Browser.Dom.window.setInterval(activateToggle, 1000)
+            { new System.IDisposable with member __.Dispose() = Browser.Dom.window.clearInterval id}
+        )
+        //let id = Helper.recCall(f, 1000)
+        Daisy.swap [
+            swap.flip
+            prop.className "text-9xl text-primary"
+            prop.children [
+                Html.input [prop.type'.checkbox; prop.ref checkbox]
+                Daisy.swapOn [Html.i [prop.className [fa.faSolid; fa.faChartLine]]]
+                Daisy.swapIndeterminate [Html.i [prop.className [fa.faSolid; fa.faChartBar]]]
+                if toggle = FlipStates.SomeonesGod then
+                    Daisy.swapOff [Html.i [prop.className [fa.faSolid; fa.faSpaghettiMonsterFlying]]]
+                else
+                    Daisy.swapOff [Html.i [prop.className [fa.faSolid; fa.faWaveSquare]]]
+                    
+            ]
+        ]
         
     [<ReactComponent>]
     static member Main() =
         let id, setId0 = React.useState("")
-        let status, setStatus = React.useState<AccessStatusStatus>(AccessStatusStatus.Idle)
+        let status, setStatus = React.useState<AccessStatusStatus>(AccessStatusStatus.Success <| DataResponseStatus.AnalysisRunning)
         let setId id =
             if status = AccessStatusStatus.NoValidGuid then
                 setStatus AccessStatusStatus.Idle
@@ -129,7 +182,27 @@ type DataAccess =
                 prop.children [
                     DataAccess.AccessForm(status, id, setId, submitId)
                     Html.div [
-                        prop.textf "Status: %A" status
+                        prop.className "flex flex-col flex-grow gap-4 justify-center items-center prose"
+                        prop.children [
+                            match status.Status with
+                            | Some DataResponseStatus.Starting ->
+                                Html.h2 "Warming up..."
+                            | Some (DataResponseStatus.MLRunning batch) ->
+                                Html.h2 "The machine is thinking.."
+                                Html.i [prop.className "fa-solid fa-robot text-6xl fa-bounce text-primary"; ]
+                                Html.div (sprintf "Batch: %A" batch)
+                            | Some (DataResponseStatus.AnalysisRunning) ->
+                                Html.h2 "Processing results.."
+                                DataAccess.PeriodicFlip()
+                            | Some (DataResponseStatus.Finished) ->
+                                Html.h2 "Results are ready!"
+                                Html.div "Getting your data ready.."
+                                Daisy.loading [
+                                    loading.infinity
+                                ]
+                            | Some (DataResponseStatus.Error _)
+                            | None -> Html.none
+                        ]
                     ]
                 ]
             ]

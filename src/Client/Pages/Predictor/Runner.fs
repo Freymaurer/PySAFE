@@ -177,8 +177,7 @@ type Runner =
         let submitEmail (email: string) =
             async {
                 setSendingEmail true
-                log ("Submit", email)
-                do! Async.Sleep(1000)
+                do! Api.predictionApi.PutEmail(state.Identifier.Value, state.Email)
                 setSendingEmail false
             }
             |> Async.StartImmediate

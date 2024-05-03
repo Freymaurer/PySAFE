@@ -41,6 +41,7 @@ type DataResponseItem = {
 
 type DataResponse = {
     Id: Guid
+    Email: string option
     Status: DataResponseStatus
     InitData: DataInput
     ResultData: DataResponseItem list
@@ -49,6 +50,7 @@ type DataResponse = {
     member this.AllItemsProcessed = this.ResultData.Length = this.InitData.Items.Length
     static member init(guid, data) = {
         Id = guid
+        Email = None
         Status = DataResponseStatus.Starting
         InitData = data
         ResultData = []

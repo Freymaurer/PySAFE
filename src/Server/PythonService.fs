@@ -53,9 +53,6 @@ type ResultType = {
     Batch: int
 }
 
-let tryGetStatus (id: System.Guid) =
-    Storage.Storage.TryGet(id) |> Option.map _.Status
-
 let subscribeWebsocket (id: System.Guid) (data: DataInput) =
     let dataResponse0 = DataResponse.init(id, data)
     Storage.Storage.Set(id, dataResponse0)

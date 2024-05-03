@@ -36,14 +36,16 @@ let predictionAPIv1: IPredictionApiv1 = {
             PythonService.subscribeWebsocket guid data
             return guid
         }
+    PutEmail = fun (id, email) ->
+        async {
+            Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
+        }
     GetStatus = fun id ->
         async {
-            match PythonService.tryGetStatus id with
-            | Some status ->
-                printfn "OK %A" (status)
-                return status
+            match Storage.Storage.TryGet id with
+            | Some dr ->
+                return dr.Status
             | None ->
-                printfn "Error --"
                 return DataResponseStatus.Error ("No status found")
         }
 }
