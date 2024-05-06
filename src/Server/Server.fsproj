@@ -4,11 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <UserSecretsId>adad89d0-732c-4735-8c06-0b0000a3b1d9</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="Environment.fs" />
     <Compile Include="Analysis.fs" />
+    <Compile Include="Email.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="PythonService.fs" />
     <Compile Include="Server.fs" />

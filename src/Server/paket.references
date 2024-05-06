@@ -2,3 +2,4 @@ Saturn
 Fable.Remoting.Giraffe
 FSharp.Core
 Websocket.Client
+Microsoft.Extensions.Configuration.UserSecrets

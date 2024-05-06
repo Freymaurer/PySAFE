@@ -39,6 +39,7 @@ let predictionAPIv1: IPredictionApiv1 = {
     PutEmail = fun (id, email) ->
         async {
             Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
+            Email.sendConfirmation email
         }
     GetStatus = fun id ->
         async {

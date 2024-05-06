@@ -79,8 +79,14 @@ let subscribeWebsocket (id: System.Guid) (data: DataInput) =
                     Storage.Storage.Update(id,fun current ->
                         if current.AllItemsProcessed then
                             logws id "Running analysis .."
-                            let res = Analysis.runAnalysis current |> Async.RunSynchronously
-                            res
+                            try
+                                let res = Analysis.runAnalysis current |> Async.RunSynchronously
+                                current.Email|> Option.iter (fun email ->
+                                    Email.sendNotification email
+                                )
+                                res
+                            with
+                                | e -> {current with Status = DataResponseStatus.Error e.Message}
                         else
                             { current with Status = DataResponseStatus.Error "Unhandled Error: Not all items processed."}
                     )
