@@ -29,6 +29,8 @@ type DataInput = {
 [<RequireQualifiedAccess>]
 type DataResponseStatus =
 | Starting
+/// Only used for large files.
+| Validating
 | MLRunning of int
 | AnalysisRunning
 | Finished

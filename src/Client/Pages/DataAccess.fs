@@ -291,6 +291,9 @@ type DataAccess =
                                 Html.none
                             | AccessStatusStatus.Success DataResponseStatus.Starting ->
                                 Html.h2 "Warming up..."
+                            | AccessStatusStatus.Success (DataResponseStatus.Validating) ->
+                                Html.h2 "Validating data input.."
+                                DataAccess.PeriodicFlip()
                             | AccessStatusStatus.Success (DataResponseStatus.MLRunning batch) ->
                                 Html.h2 "The machine is thinking.."
                                 Html.i [prop.className "fa-solid fa-robot text-6xl fa-bounce text-primary"; ]

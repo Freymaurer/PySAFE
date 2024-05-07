@@ -38,10 +38,13 @@ let predictionAPIv1: IPredictionApiv1 = {
         }
     PutEmail = fun (id, email) ->
         async {
-            Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
-            Email.sendConfirmation email
-            if Storage.Storage.Get (id) |> _.IsExited then
-                Email.sendNotification email
+            match Storage.Storage.TryGet id with
+            | Some {Email = None} -> // Only send emails if not already sent
+                Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
+                Email.sendConfirmation email
+                if Storage.Storage.Get (id) |> _.IsExited then
+                    Email.sendNotification email
+            | _ -> ()
         }
     GetStatus = fun id ->
         async {
