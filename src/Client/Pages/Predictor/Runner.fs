@@ -4,17 +4,24 @@ open Fable.Core
 open Feliz
 open Feliz.DaisyUI
 
+[<RequireQualifiedAccess>]
 type private Status =
     | Idle
     | Loading
     | Started
+
+[<RequireQualifiedAccess>]
+type EmailState =
+    | Idle
+    | Loading
+    | Success
 
 type private State = {
     Status: Status
     Identifier: System.Guid option
     Email: string
 } with
-    static member init() = { Status = Idle; Identifier = None; Email = "" }
+    static member init() = { Status = Status.Idle; Identifier = None; Email = "" }
 
 module private Helper =
 
@@ -26,12 +33,18 @@ module private Helper =
 
 type Runner =
 
-    static member private EmailForm(state: State, setState, submitEmail, sendingEmail:bool) =
+    static member private EmailForm(state: State, setState, submitEmail, emailStatus:EmailState) =
         Daisy.formControl [ // Email
-            prop.className "flex-grow"
+            prop.className "flex-grow gap-3"
             prop.children [
-                Daisy.label [
-                    Daisy.labelTextAlt "You can opt-in to receive an email when the prediction is ready."
+                Daisy.alert [
+                    alert.info
+                    prop.children [
+                        Html.i [prop.className [fa.faSolid; fa.faInfoCircle; fa.fa2Xl]]
+                        Html.p [
+                            prop.text "You can opt-in to receive an email when the prediction is ready. You will receive a confirmation email verifying your request."
+                        ]
+                    ]
                 ]
                 Daisy.join [
                     Daisy.input [
@@ -41,17 +54,27 @@ type Runner =
                         prop.valueOrDefault state.Email
                         prop.onChange (fun e -> setState { state with Email = e })
                         prop.onKeyDown(key.enter, fun _ -> submitEmail state.Email)
+                        if emailStatus = EmailState.Success then
+                            prop.disabled true
                     ]
                     Daisy.button.button [
                         prop.className "join-item"
-                        if state.Email = "" then button.disabled else button.primary
+                        if state.Email = "" then
+                            button.disabled
+                        else
+                            button.primary
+                        if emailStatus = EmailState.Success then
+                            button.disabled
+                            button.primary
                         prop.onClick (fun _ -> submitEmail state.Email)
                         prop.children [
-                            if sendingEmail then
+                            match emailStatus with
+                            | EmailState.Loading ->
                                 Daisy.loading [loading.bars; color.textAccent]
-                            else
+                            | EmailState.Idle ->
                                 Html.span "Submit"
-                            
+                            | EmailState.Success ->
+                                Html.i [prop.className [fa.faRegular; fa.faCheckCircle; fa.fa2Xl]]
                         ]
                     ]
                 ]
@@ -60,16 +83,21 @@ type Runner =
 
     static member private IdleContent(startRun: unit -> unit) =
         Html.div [
-            prop.className "prose"
+            prop.className "flex flex-grow flex-col xl:flex-row gap-6"
             prop.children [
-                Html.p "Perfect! 🎉 We are read to start the prediction."
-                Html.p "After starting the process you will receive an ID, which is necessary to access the results."
-                Html.p "Calculation can take some time, you can come back at any time to check the status using your ID."
+                Html.div [
+                    prop.className "prose"
+                    prop.children [
+                        Html.p "Perfect! 🎉 We are read to start the prediction."
+                        Html.p "After starting the process you will receive an ID, which is necessary to access the results."
+                        Html.p "Calculation can take some time, you can come back at any time to check the status using your ID."
+                    ]
+                ]
                 Html.div [
                     prop.className "flex justify-center"
                     prop.children [
                         Daisy.button.button [
-                            prop.className "flex-col w-[300px] h-[100px] gap-6"
+                            prop.className "flex-col w-[300px] h-[100px] gap-6 xl:h-full"
                             button.primary
                             button.lg
                             prop.onClick(fun _ -> startRun())
@@ -109,6 +137,15 @@ type Runner =
         Html.div [
             prop.className "flex flex-col gap-3"
             prop.children [
+                Daisy.alert [
+                    alert.warning
+                    prop.children [
+                        Html.i [prop.className [fa.faSolid; fa.faInfoCircle; fa.fa2Xl]]
+                        Html.p [
+                            prop.text "Remember to copy the id below. Without it you will not be able to access your analyzed data!"
+                        ]
+                    ]
+                ]
                 Daisy.formControl [ // ID Copy
                     prop.className "relative"
                     prop.children [
@@ -163,22 +200,23 @@ type Runner =
         ]
 
     [<ReactComponent>]
-    static member Main(data, setData, setStep: Steps -> unit)  =
+    static member Main(data, reset: unit -> unit, setIsRunning: bool -> unit)  =
         let (state: State), setState = React.useState(State.init)
-        let sendingEmail, setSendingEmail = React.useState(false)
+        let emailStatus, setEmailStatus= React.useState(EmailState.Idle)
         let copied, setCopied = React.useState(false)
         let startRun = fun () ->
             async {
-                setState { state with Status = Loading }
+                setIsRunning true
+                setState { state with Status = Status.Loading }
                 let! guid = Api.predictionApi.StartEvaluation data
-                setState { state with Status = Started; Identifier = Some guid }
+                setState { state with Status = Status.Started; Identifier = Some guid }
             }
             |> Async.StartImmediate
         let submitEmail (email: string) =
             async {
-                setSendingEmail true
+                setEmailStatus EmailState.Loading
                 do! Api.predictionApi.PutEmail(state.Identifier.Value, state.Email)
-                setSendingEmail false
+                setEmailStatus EmailState.Success
             }
             |> Async.StartImmediate
         Html.div [
@@ -191,12 +229,12 @@ type Runner =
                     ]
                 ]
                 match state.Status with
-                | Idle -> Runner.IdleContent startRun
-                | Loading -> Runner.LoadingContent
-                | Started -> Runner.StartedContent(state, setState, copied, setCopied)
+                | Status.Idle -> Runner.IdleContent startRun
+                | Status.Loading -> Runner.LoadingContent
+                | Status.Started -> Runner.StartedContent(state, setState, copied, setCopied)
                 Daisy.cardActions [
                     prop.className "flex justify-between items-end"
-                    if state.Status = Started then
+                    if state.Status = Status.Started then
                         let exitButton =
                             Daisy.button.button [
                                 if not copied then
@@ -204,15 +242,16 @@ type Runner =
                                 prop.className "ml-auto"
                                 button.info
                                 prop.onClick(fun _ ->
-                                    setStep Steps.Canceled
+                                    reset()
                                 )
                                 prop.text "Exit"
                             ]  
                         prop.children [
-                            Runner.EmailForm(state,setState,submitEmail,sendingEmail)
+                            Runner.EmailForm(state,setState,submitEmail,emailStatus)
                             if not copied then
                                 Daisy.tooltip [
                                     prop.custom("data-tip", "Copy ID first!")
+                                    prop.className "ml-auto"
                                     prop.children [
                                         exitButton     
                                     ]

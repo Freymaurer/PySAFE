@@ -77,6 +77,7 @@ type Main =
             setData <| DataInput.empty()
             setStep0 Steps.DataInput
             setDatasrc None
+        let isRunning, setIsRunning = React.useState(false)
         let setStep (step: Steps) =
             if step = Steps.Canceled then
                 reset()
@@ -88,8 +89,9 @@ type Main =
             | Steps.Settings ->
                 Pages.Predictor.Settings.Main(data, setData, setStep)
             | Steps.Running ->
-                Pages.Predictor.Runner.Main(data, setData, setStep)
+                Pages.Predictor.Runner.Main(data, reset, setIsRunning)
             | _ -> Html.div "not implemted"
-            Main.Steps(step, setStep)
+            if not isRunning then // only show go back steps while not running
+                Main.Steps(step, setStep)
         ]
 

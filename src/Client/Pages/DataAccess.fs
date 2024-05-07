@@ -153,7 +153,7 @@ type DataAccess =
     [<ReactComponent>]
     static member Main() =
         let id, setId0 = React.useState("")
-        let status, setStatus = React.useState<AccessStatusStatus>(AccessStatusStatus.Success <| DataResponseStatus.AnalysisRunning)
+        let status, setStatus = React.useState<AccessStatusStatus>(AccessStatusStatus.Idle)
         let setId id =
             if status = AccessStatusStatus.NoValidGuid then
                 setStatus AccessStatusStatus.Idle

@@ -21,6 +21,7 @@ type Clipboard =
 
 type Navigator =
     abstract member clipboard: Clipboard
+    abstract member userAgent: string
 
 [<Emit("navigator")>]
 let navigator : Navigator = jsNative

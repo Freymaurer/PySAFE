@@ -31,7 +31,7 @@ let appAPIv1: IAppApiv1 = {
 
 let predictionAPIv1: IPredictionApiv1 = {
     StartEvaluation = fun data ->
-        let guid = Environment.TestGUID//Storage.generateNewGuid()
+        let guid = Storage.generateNewGuid()
         async {
             PythonService.subscribeWebsocket guid data
             return guid
@@ -40,6 +40,8 @@ let predictionAPIv1: IPredictionApiv1 = {
         async {
             Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
             Email.sendConfirmation email
+            if Storage.Storage.Get (id) |> _.Status = DataResponseStatus.Finished then
+                Email.sendNotification email
         }
     GetStatus = fun id ->
         async {

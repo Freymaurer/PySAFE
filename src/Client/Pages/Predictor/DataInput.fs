@@ -30,6 +30,8 @@ type DataInput =
                     textarea.bordered
                     if data.IsSome then
                         prop.valueOrDefault data.Value
+                    else
+                        prop.valueOrDefault ""
                     prop.disabled disabled
                     prop.placeholder ".. add fasta information"
                     prop.className "flex-grow"
@@ -43,10 +45,12 @@ type DataInput =
                         )
                 ]
                 if keyboardconfirm.IsSome then
+                    let isMac = navigator.userAgent.Contains("Mac");
+                    let key = if isMac then "⌘" else "Ctrl"
                     Html.span [
                         prop.className "absolute bottom-0 right-0 text-xs text-gray-500 px-2 py-1"
                         prop.children [
-                            Daisy.kbd [ kbd.xs; prop.text "Ctrl/⌘" ]
+                            Daisy.kbd [ kbd.xs; prop.text key ]
                             Html.span " + "
                             Daisy.kbd [ kbd.xs; prop.text "Enter" ]
                             Html.span " to confirm"

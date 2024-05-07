@@ -24,7 +24,7 @@ module EmailKeys =
 
 open Microsoft.Extensions.Configuration
 
-let mutable missingCredentials = false
+let mutable missingEmailCredentials = false
 let internal EmailConfig =
     let config = (new ConfigurationBuilder()).AddUserSecrets("adad89d0-732c-4735-8c06-0b0000a3b1d9").Build()
     let accessKey(key: string) =
@@ -34,7 +34,7 @@ let internal EmailConfig =
         | null, null ->
             let c0 = Console.ForegroundColor
             Console.ForegroundColor <- ConsoleColor.Yellow
-            missingCredentials <- true
+            missingEmailCredentials <- true
             Console.WriteLine "[WARNING]: No email credentials found, email functionality disabled."
             Console.ForegroundColor <- c0
             ""
@@ -47,8 +47,6 @@ let internal EmailConfig =
         Server = accessKey EmailKeys.server_key
         Port = accessKey EmailKeys.port_key |> int
     }
-   
-
 
 [<Literal>]
 let private url_key = "PYTHON_SERVICE_URL"

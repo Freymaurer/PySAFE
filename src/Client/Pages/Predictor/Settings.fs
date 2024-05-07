@@ -20,16 +20,18 @@ type Settings =
                     ]
                 ]
                 Html.div [
-                    prop.className "prose text-justify"
                     prop.children [
                         Daisy.formControl [
                             Daisy.label [
                                 prop.className "gap-8"
                                 prop.children [
                                     Daisy.labelText [
-                                        Html.h4 "Config 1"
-                                        Daisy.help [
-                                            Html.span """This configuration setting toggles between two states: "active" and "not active." When active, the feature is enabled, providing its intended functionality. Conversely, when not active, the feature is disabled, withholding its functionality. Adjust this setting based on your needs to control the feature's behavior within the system."""
+                                        prop.className "prose text-justify"
+                                        prop.children [
+                                            Html.h4 "Config 1"
+                                            Daisy.help [
+                                                Html.span """This configuration setting toggles between two states: "active" and "not active." When active, the feature is enabled, providing its intended functionality. Conversely, when not active, the feature is disabled, withholding its functionality. Adjust this setting based on your needs to control the feature's behavior within the system."""
+                                            ]
                                         ]
                                     ]
                                     Daisy.toggle [
