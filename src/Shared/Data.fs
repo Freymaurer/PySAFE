@@ -33,6 +33,8 @@ type DataResponseStatus =
 | AnalysisRunning
 | Finished
 | Error of string
+with
+    member this.IsExitCode = match this with | Finished | Error _ -> true | _ -> false
 
 type DataResponseItem = {
     Number: int
@@ -55,7 +57,8 @@ type DataResponse = {
         InitData = data
         ResultData = []
     }
+    member this.IsExited = this.Status.IsExitCode
 
 type DataResponseDTO = {
-    Status: DataResponseStatus
+    Data: DataResponseItem list
 }

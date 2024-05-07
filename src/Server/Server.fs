@@ -40,7 +40,7 @@ let predictionAPIv1: IPredictionApiv1 = {
         async {
             Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
             Email.sendConfirmation email
-            if Storage.Storage.Get (id) |> _.Status = DataResponseStatus.Finished then
+            if Storage.Storage.Get (id) |> _.IsExited then
                 Email.sendNotification email
         }
     GetStatus = fun id ->
@@ -50,6 +50,19 @@ let predictionAPIv1: IPredictionApiv1 = {
                 return dr.Status
             | None ->
                 return DataResponseStatus.Error ("No status found")
+        }
+    GetData = fun id ->
+        async {
+            let dto =
+                match Storage.Storage.TryGet id with
+                | Some dr ->
+                    let dto: DataResponseDTO = { Data = dr.ResultData }
+                    if dr.Status <> DataResponseStatus.Finished then
+                        failwith "No data accessible."
+                    dto
+                | None ->
+                    failwith "No data accessible."
+            return dto
         }
 }
 

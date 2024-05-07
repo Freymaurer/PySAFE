@@ -39,4 +39,5 @@ type IPredictionApiv1 = {
     StartEvaluation: DataInput -> Async<Guid>
     PutEmail: Guid * string -> Async<unit>
     GetStatus: Guid -> Async<DataResponseStatus>
+    GetData: Guid -> Async<DataResponseDTO>
 }
