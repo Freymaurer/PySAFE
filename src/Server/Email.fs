@@ -13,12 +13,12 @@ let SMPTClient =
 
 let emailSend(mail:MailMessage) =
     if not Environment.missingEmailCredentials then
-        try
-            SMPTClient.SendMailAsync mail
-            |> Async.AwaitTask
-            |> Async.Start
-        with
-            | exn -> printfn "[EMAIL] Error: %s" exn.Message
+        SMPTClient.SendMailAsync mail
+        |> Async.AwaitTask
+    else
+        async {
+            return()
+        }
 
 open Giraffe.ViewEngine
 
@@ -80,31 +80,25 @@ let notificationEmailBody =
     |> RenderView.AsString.htmlDocument
 
 let sendConfirmation(targetEmail: string) =
-    try 
-        let msg =
-            new MailMessage(
-                Environment.EmailConfig.Email,
-                targetEmail,
-                "CSB - Confirmation: Registration to Notification Service",
-                confirmationEmailBody
-            )
-        msg.BodyEncoding <- Text.Encoding.UTF8
-        msg.IsBodyHtml <- true
-        emailSend msg
-    with
-        | exn -> printfn "[EMAIL] Error: %s" exn.Message
+    let msg =
+        new MailMessage(
+            Environment.EmailConfig.Email,
+            targetEmail,
+            "CSB - Confirmation: Registration to Notification Service",
+            confirmationEmailBody
+        )
+    msg.BodyEncoding <- Text.Encoding.UTF8
+    msg.IsBodyHtml <- true
+    emailSend msg
 
 let sendNotification(targetEmail: string) =
-    try 
-        let msg =
-            new MailMessage(
-                Environment.EmailConfig.Email,
-                targetEmail,
-                "CSB - Subject: Your Data Analysis is Ready!",
-                notificationEmailBody
-            )
-        msg.BodyEncoding <- Text.Encoding.UTF8
-        msg.IsBodyHtml <- true
-        emailSend msg
-    with
-        | exn -> printfn "[EMAIL] Error: %s" exn.Message
+    let msg =
+        new MailMessage(
+            Environment.EmailConfig.Email,
+            targetEmail,
+            "CSB - Notification: Your Data Analysis is Ready!",
+            notificationEmailBody
+        )
+    msg.BodyEncoding <- Text.Encoding.UTF8
+    msg.IsBodyHtml <- true
+    emailSend msg

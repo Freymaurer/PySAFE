@@ -33,7 +33,7 @@ module private Helper =
         |> Async.StartImmediate
 
     let uploadLargeDataFile (guid: System.Guid, blob: Browser.Types.Blob) =
-        let url = Shared.Route.builder "ILargeFileApiv1" "UploadFile"
+        let url = Shared.Route.builder "ILargeFileApiv1" "UploadLargeFile"
         fetch url [
             requestHeaders [
                 HttpRequestHeaders.ContentType "application/octet-stream"

@@ -3,7 +3,8 @@ namespace Shared
 open System
 
 type DataInputItem = {
-    Number: int
+    Header: string
+    Sequence: string
 }
 
 type DataInputConfig = {
@@ -48,13 +49,13 @@ with
     member this.IsExitCode = match this with | Finished | Error _ -> true | _ -> false
 
 type DataResponseItem = {
-    Number: int
+    Header: string
+    Predictions: float list
 } with
-    static member init(number) = { Number = number }
+    static member init(header, ?prediction) = { Header = header; Predictions = defaultArg prediction [] }
 
 type DataResponse = {
     Id: Guid
-    Email: string option
     Status: DataResponseStatus
     InitData: DataInput
     ResultData: DataResponseItem list
@@ -63,7 +64,6 @@ type DataResponse = {
     member this.AllItemsProcessed = this.ResultData.Length = this.InitData.Items.Length && not this.ResultData.IsEmpty
     static member init(guid, data) = {
         Id = guid
-        Email = None
         Status = DataResponseStatus.Starting
         InitData = data
         ResultData = []

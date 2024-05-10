@@ -32,7 +32,7 @@ type Examples =
             prop.style [style.textAlign.left]
             prop.children [
                 Html.div [
-                    prop.className "btn"
+                    prop.className "btn btn-info"
                     prop.role "button"
                     prop.tabIndex 0
                     prop.text "Examples"

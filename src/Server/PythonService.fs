@@ -48,8 +48,13 @@ type Message = {
     Data: obj
 }
 
-type ResultType = {
-    Results: int list
+type RequestType = {
+    Fasta: DataInputItem []
+} with
+    static member init(items: DataInputItem []) = { Fasta = items }
+
+type ResponseType = {
+    Results: DataResponseItem list
     Batch: int
 }
 
@@ -91,7 +96,7 @@ let subscribeWebsocket (dro: DataResponse) =
                     closeAll("Closing client ..")
                     logws id "Starting analysis .."
                     Storage.Storage.Update(id, fun current -> { current with Status = DataResponseStatus.AnalysisRunning } )
-                    Storage.Storage.Update(id,fun current ->
+                    Storage.Storage.Update(id, fun current ->
                         if current.AllItemsProcessed then
                             logws id "Running analysis .."
                             let analysisResult =
@@ -100,24 +105,31 @@ let subscribeWebsocket (dro: DataResponse) =
                                     res
                                 with
                                     | e -> {current with Status = DataResponseStatus.Error e.Message}
-                            current.Email|> Option.iter (fun email ->
-                                Email.sendNotification email
-                            )
                             analysisResult
                         else
                             { current with Status = DataResponseStatus.Error "Unhandled Error: Not all items processed."}
                     )
+                    //email
+                    match (Storage.EmailStorage.TryGet id) with
+                    | Some email -> 
+                        logws id "Sending notification email .."
+                        Email.sendNotification email
+                        |> Async.RunSynchronously
+                    | None ->
+                        logws id "Not subscribed to notification service .."
                     logws id "Analysis done. Task completed successfully .."
                 | "Error" ->
                     logws id "Python Error: %A" msg.Data
                     closeAll("Python error")
                 | "DataResponse" ->
-                    let responseData: ResultType = Json.JsonSerializer.Deserialize<ResultType>(msg.Data :?> Json.JsonElement)
+                    logws id "DataResponse received ..: %A" msg.Data
+                    let responseData: ResponseType = Json.JsonSerializer.Deserialize<ResponseType>(msg.Data :?> Json.JsonElement)
+                    logws id "DataResponse received: %A" responseData
                     Storage.Storage.Update(id,fun current ->
                         { current with
                             Status = DataResponseStatus.MLRunning(responseData.Batch)
                             ResultData =
-                                let newData = responseData.Results |> List.map DataResponseItem.init
+                                let newData = responseData.Results
                                 newData@current.ResultData
                         }
                     )
@@ -133,7 +145,7 @@ let subscribeWebsocket (dro: DataResponse) =
         logws id "Starting client .."
         //if client.IsRunning then
         logws id "transforming data to json .."
-        let bytes = Encoding.UTF8.GetBytes(Json.JsonSerializer.Serialize<DataInput>(dro.InitData))
+        let bytes = Encoding.UTF8.GetBytes(Json.JsonSerializer.Serialize<RequestType>(RequestType.init dro.InitData.Items))
         client.Start() |> ignore
         Storage.Storage.Update(id,fun current -> { current with Status = DataResponseStatus.Starting})
         logws id "Sending data .."

@@ -41,8 +41,9 @@ type IPredictionApiv1 = {
     GetStatus: Guid -> Async<DataResponseStatus>
     GetData: Guid -> Async<DataResponseDTO>
     PutConfig: DataInputConfig -> Async<Guid>
+    ValidateData: string -> Async<Result<DataInputItem [], exn>>
 }
 
 type ILargeFileApiv1 = {
-    UploadFile: byte [] -> Async<unit>
+    UploadLargeFile: byte [] -> Async<unit>
 }

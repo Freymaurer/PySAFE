@@ -17,11 +17,6 @@ type private ValidationStatus =
     | Invalid of exn
     | Valid
 
-module private Helper =
-    [<Emit("new Uint8Array($1)")>]
-    let bufferToBytes (input: JS.ArrayBuffer) = jsNative
-
-open Helper
 
 type DataInput =
 
@@ -79,7 +74,7 @@ type DataInput =
                 | File s | Text s -> 
                     // start validation
                     setValidating ValidationStatus.Validating
-                    let! result = Shared.ValidateData.Main(s)
+                    let! result = Api.predictionApi.ValidateData s
                     match result with
                     | Ok validatedData ->
                         setValidating ValidationStatus.Valid

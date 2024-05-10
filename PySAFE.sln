@@ -44,6 +44,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{2FA8B650-E2A9-4581-BAB6-CB95C4BC9CFC}"
 	ProjectSection(SolutionItems) = preProject
 		src\FastAPI\app\main.py = src\FastAPI\app\main.py
+		src\FastAPI\app\prediction.py = src\FastAPI\app\prediction.py
 	EndProjectSection
 EndProject
 Global

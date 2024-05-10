@@ -30,15 +30,14 @@ let DefaultAnoFail = "No data accessible."
 let AppVersion = "0.0.1"
 
 let lsAPIv1 (ctx: HttpContext): ILargeFileApiv1 = {
-    UploadFile = fun (bytes) -> async {
+    UploadLargeFile = fun (bytes) -> async {
         match ctx.GetRequestHeader("X-GUID") with
         | Ok guid ->
             let guid = System.Guid.Parse(guid)
             match Storage.Storage.TryGet guid with
             | Some dro0 ->
                 async {
-                    let dataRaw = System.Text.Encoding.ASCII.GetString bytes
-                    let! validationResult = ValidateData.Main(dataRaw)
+                    let! validationResult = FastaReader.mainReadOfBytes(bytes)
                     match validationResult with
                     | Ok data0 ->
                         let data = {dro0 with InitData.Items = data0}
@@ -75,13 +74,20 @@ let predictionAPIv1: IPredictionApiv1 = {
         }
     PutEmail = fun (id, email) ->
         async {
-            match Storage.Storage.TryGet id with
-            | Some {Email = None} -> // Only send emails if not already sent
-                Storage.Storage.Update (id, fun dr -> {dr with Email = Some email})
-                Email.sendConfirmation email
-                if Storage.Storage.Get (id) |> _.IsExited then
-                    Email.sendNotification email
+            match Storage.Storage.TryGet id with // only subscribe if data exists
+            | Some dro ->
+                match Storage.EmailStorage.TryGet id with // only subscribe if no email already subscribed
+                | None ->
+                    Storage.EmailStorage.Set (id, email)
+                    async {
+                        do! Email.sendConfirmation email
+                        if dro.IsExited then
+                            do! Email.sendNotification email
+                    }
+                    |> Async.Start
+                | Some _ -> ()
             | _ -> ()
+            return ()
         }
     GetStatus = fun id ->
         async {
@@ -93,6 +99,7 @@ let predictionAPIv1: IPredictionApiv1 = {
         }
     GetData = fun id ->
         async {
+            printfn "HIT"
             let dto =
                 match Storage.Storage.TryGet id with
                 | Some dr ->
@@ -110,7 +117,6 @@ let predictionAPIv1: IPredictionApiv1 = {
             let dro =
                 {
                     Id = guid
-                    Email = None
                     Status = DataResponseStatus.Validating
                     InitData = { Items = [||]; Config = config}
                     ResultData = []
@@ -118,6 +124,8 @@ let predictionAPIv1: IPredictionApiv1 = {
             Storage.Storage.Set(guid, dro)
             return guid
         }
+    ValidateData = fun rawData ->
+        FastaReader.mainReadOfString rawData
 }
 
 let createAppApi =

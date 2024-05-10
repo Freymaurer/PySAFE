@@ -89,7 +89,7 @@ module private Helper =
 
     let dtoToString(dto: DataResponseDTO) =
         dto.Data
-        |> List.mapi (fun i x -> sprintf "%i\t%i" i x.Number)
+        |> List.mapi (fun i x -> sprintf "%i\t%s\t%A" i x.Header x.Predictions)
         |> String.concat "\n"
 
     let downloadData (dto: DataResponseDTO) =
@@ -263,18 +263,20 @@ type DataAccess =
                                 Html.thead [
                                     Html.tr [
                                         Html.th ""
-                                        Html.th "Data"
+                                        Html.th "Header"
+                                        Html.th "Prediction"
                                     ]
                                 ]
                                 Html.tbody [
                                     let chunk = Seq.item activeChunk chunkedData
                                     for i in 0 .. (chunk.Length-1) do
-                                        let num = chunk.[i].Number
+                                        let ele = chunk.[i]
                                         let innerIndex = i+1
                                         let outerIndex = innerIndex * (activeChunk+1)
                                         Html.tr [
                                             Html.th (outerIndex)
-                                            Html.td (sprintf "Number: %i" num)
+                                            Html.td ele.Header
+                                            Html.td (ele.Predictions |> List.map string |> String.concat ", ")
                                         ]
                                 ]
                             ]
@@ -341,8 +343,10 @@ type DataAccess =
                     let! response = Api.predictionApi.GetStatus guid
                     match response with
                     | DataResponseStatus.Finished ->
+                        log "Data is ready"
                         setStatus (AccessStatusStatus.LoadingData)
                         let! data = Api.predictionApi.GetData guid
+                        log (sprintf "Data: %A" data)
                         setStatus (AccessStatusStatus.DataReady data)
                     | anyElse -> 
                         setStatus (AccessStatusStatus.Success response)
