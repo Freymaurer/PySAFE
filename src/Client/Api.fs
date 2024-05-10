@@ -12,3 +12,9 @@ let appApi =
     Remoting.createApi ()
     |> Remoting.withRouteBuilder Route.builder
     |> Remoting.buildProxy<IAppApiv1>
+
+let lsApi =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.withBinarySerialization
+    |> Remoting.buildProxy<ILargeFileApiv1>

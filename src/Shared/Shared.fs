@@ -40,4 +40,9 @@ type IPredictionApiv1 = {
     PutEmail: Guid * string -> Async<unit>
     GetStatus: Guid -> Async<DataResponseStatus>
     GetData: Guid -> Async<DataResponseDTO>
+    PutConfig: DataInputConfig -> Async<Guid>
+}
+
+type ILargeFileApiv1 = {
+    UploadFile: byte [] -> Async<unit>
 }

@@ -70,14 +70,17 @@ type Main =
 
     [<ReactComponent>]
     static member Main() =
-        let (data: Shared.DataInput), setData = React.useState(DataInput.empty)
+        let (data: DataInputItem []), setData = React.useState([||])
+        let (config: Shared.DataInputConfig), setConfig = React.useState(Shared.DataInputConfig.init)
         let (datasrc: DataSrc option), setDatasrc = React.useState(None)
         let step, setStep0 = React.useState(Steps.DataInput)
-        let reset() =
-            setData <| DataInput.empty()
-            setStep0 Steps.DataInput
-            setDatasrc None
         let isRunning, setIsRunning = React.useState(false)
+        let reset() =
+            setData [||]
+            setStep0 Steps.DataInput
+            setConfig (Shared.DataInputConfig.init())
+            setDatasrc None
+            setIsRunning false
         let setStep (step: Steps) =
             if step = Steps.Canceled then
                 reset()
@@ -87,9 +90,9 @@ type Main =
             | Steps.DataInput ->
                 Pages.Predictor.DataInput.Main(data, setData, setStep, datasrc, setDatasrc)
             | Steps.Settings ->
-                Pages.Predictor.Settings.Main(data, setData, setStep)
+                Pages.Predictor.Settings.Main(config, setConfig, setStep)
             | Steps.Running ->
-                Pages.Predictor.Runner.Main(data, reset, setIsRunning)
+                Pages.Predictor.Runner.Main(datasrc, data, config, reset, setIsRunning)
             | _ -> Html.div "not implemted"
             if not isRunning then // only show go back steps while not running
                 Main.Steps(step, setStep)

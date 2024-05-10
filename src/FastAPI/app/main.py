@@ -1,9 +1,11 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import asyncio
 import json
 from dataclasses import dataclass
 from typing import List
 from enum import Enum
+import datetime
+import uvicorn
 
 app = FastAPI(debug=True)
 
@@ -28,7 +30,7 @@ class DataInputConfig:
 class DataInput:
     Items: List[DataInputItem]
     Config: DataInputConfig
-    
+
 
 @dataclass
 class ResultType:
@@ -53,11 +55,11 @@ def parse_json(json_data: str) -> DataInput:
 
 exitMsg = Message(APIMessages.Exit.value, None)
 
-def errorMsg(error: str) -> Message:
-    return Message(APIMessages.Error.value, error)
+def errorMsg(error: Exception) -> Message:
+    return Message(APIMessages.Error.value, repr(error))
 
 async def run_ml(websocket: WebSocket, data_input: DataInput):
-    batch_size = 5
+    batch_size = 400
     for i in range(0, len(data_input.Items), batch_size):
         batch = data_input.Items[i:i+batch_size]
         print("[WS] Processing: batch -", i)
@@ -66,21 +68,34 @@ async def run_ml(websocket: WebSocket, data_input: DataInput):
         await websocket.send_json(msg.__dict__)
         print("[WS] Sent: batch - ", i)
         await asyncio.sleep(1)  # Wait for 1 second before sending the next batch
+    print("[WS] Done. Closing..")
     await websocket.send_json(exitMsg.__dict__)
-    await websocket.close()
-
+    print("[WS] Closing message sent")
 
 @app.websocket("/dataml")
 async def websocket_endpoint(websocket: WebSocket):
     print("[WS] Connected")
     await websocket.accept()
     try:
-        data = await websocket.receive_text()
-        data_input = parse_json(data)
+        # while True:
+        print ("[WS] Receiving data ..")
+        data_bytes = await websocket.receive_bytes()
+        print ("[WS] bytes received:", len(data_bytes))
+        data_json = data_bytes.decode('utf-8')
+        print ("[WS] json received ..", data_json[:100], "..")
+        data_input = parse_json(data_json)
+        print ("[WS] Starting ml ..")
         await run_ml(websocket, data_input)
+    except WebSocketDisconnect:
+        #on_disconnect
+        print("[WS] Disconnected")
+        pass
     except Exception as e:
-        msg = errorMsg(str(e))
+        msg = errorMsg(e)
         print ("[WS] Error:", msg)
         await websocket.send_json(msg.__dict__)
         await websocket.close(code=1011)
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info", ws_max_size=None)
+    # d24cafad-ebb6-4c7b-adeb-9aa8cdba5c8f

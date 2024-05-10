@@ -8,7 +8,7 @@ open Shared
 
 type Settings =
     [<ReactComponent>]
-    static member Main(data: Shared.DataInput, setData: Shared.DataInput -> unit, setStep: Steps -> unit) =
+    static member Main(config: Shared.DataInputConfig, setConfig: Shared.DataInputConfig -> unit, setStep: Steps -> unit) =
         let radioConfig1Id = "radio_config1"
         Html.div [
             prop.className "flex flex-col flex-grow gap-3"
@@ -35,11 +35,10 @@ type Settings =
                                         ]
                                     ]
                                     Daisy.toggle [
-                                        let config = data.Config.SomeConfig
                                         prop.id radioConfig1Id
-                                        if config then toggle.primary
-                                        prop.onChange(fun (b:bool) -> setData {data with DataInput.Config.SomeConfig = b} )
-                                        prop.defaultChecked config
+                                        if config.SomeConfig then toggle.primary
+                                        prop.onChange(fun (b:bool) -> setConfig {config with SomeConfig = b} )
+                                        prop.defaultChecked config.SomeConfig
                                     ]
                                 ]
                             ]

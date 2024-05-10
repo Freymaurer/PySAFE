@@ -224,28 +224,99 @@ type DataAccess =
             ]
         ]
 
-    static member DataView(data: DataResponseDTO) =
+    static member private PaginationButton(target: int, current: int, setActiveChunk: int -> unit) =
+        Daisy.button.a [
+            button.sm
+            button.outline
+            prop.className "join-item"
+            if target = current then button.active
+            prop.onClick(fun _ -> setActiveChunk target)
+            prop.text (target+1)
+        ]
+
+    static member private PaginationButtonPlaceholder() =
+        Daisy.button.a [
+            button.sm
+            button.outline
+            prop.className "join-item"
+            button.disabled
+            prop.text ""
+        ]
+
+    [<ReactComponent>]
+    static member private DataView(data: DataResponseDTO) =
+        let activeChunk, setActiveChunk = React.useState(0)
+        let chunkedData = data.Data |> Seq.chunkBySize 50
+        let chunkCount = Seq.length chunkedData
         Html.div [
-            prop.className "overflow-x-auto w-full max-h-[400px]"
+            prop.className "flex flex-grow flex-col gap-4 w-full"
             prop.children [
-                Daisy.table [
-                    table.pinRows
-                    table.pinCols
-                    table.xs
+                Html.div [
+                    prop.className "overflow-x-auto flex-grow max-h-[400px]"
+                    prop.id "table-container"
                     prop.children [
-                        Html.thead [
-                            Html.tr [
-                                Html.th ""
-                                Html.th "Data"
+                        Daisy.table [
+                            table.pinRows
+                            table.pinCols
+                            table.xs
+                            prop.children [
+                                Html.thead [
+                                    Html.tr [
+                                        Html.th ""
+                                        Html.th "Data"
+                                    ]
+                                ]
+                                Html.tbody [
+                                    let chunk = Seq.item activeChunk chunkedData
+                                    for i in 0 .. (chunk.Length-1) do
+                                        let num = chunk.[i].Number
+                                        let innerIndex = i+1
+                                        let outerIndex = innerIndex * (activeChunk+1)
+                                        Html.tr [
+                                            Html.th (outerIndex)
+                                            Html.td (sprintf "Number: %i" num)
+                                        ]
+                                ]
                             ]
                         ]
-                        Html.tbody [
-                            for i in 0 .. (data.Data.Length-1) do
-                                let num = (data.Data.Item i).Number
-                                Html.tr [
-                                    Html.th i
-                                    Html.td (sprintf "Number: %i" num)
-                                ]
+                    ]
+                ]
+                Html.div [
+                    prop.className "flex flex-row justify-between items-end"
+                    prop.children [
+                        Daisy.join [
+                            // Start chunk
+                            DataAccess.PaginationButton(0, activeChunk, setActiveChunk)
+                            let chunkMinus3 = activeChunk-3
+                            let chunkMinus2 = activeChunk-2
+                            let chunkMinus1 = activeChunk-1
+                            let chunkPlus1 = activeChunk+1
+                            let chunkPlus2 = activeChunk+2
+                            let chunkPlus3 = activeChunk+3
+                            let showChunk(chunk:int) (isPlaceholder: bool) =
+                                if chunk >= 1 && chunk < chunkCount-1 then
+                                    if isPlaceholder then
+                                        [DataAccess.PaginationButtonPlaceholder()]
+                                    else
+                                        [DataAccess.PaginationButton(chunk, activeChunk, setActiveChunk)]
+                                else
+                                    []
+                            yield! showChunk chunkMinus3 true
+                            yield! showChunk chunkMinus2 false
+                            yield! showChunk chunkMinus1 false
+                            // active chunk
+                            yield! showChunk activeChunk false
+                            yield! showChunk chunkPlus1 false
+                            yield! showChunk chunkPlus2 false
+                            yield! showChunk chunkPlus3 true
+                            // End chunk, only if more than one chunk
+                            if chunkCount > 1 then
+                                DataAccess.PaginationButton(chunkCount-1, activeChunk, setActiveChunk)
+                        ]
+                        Daisy.button.button [
+                            button.primary
+                            prop.text "Download"
+                            prop.onClick (fun _ -> Helper.downloadData data)
                         ]
                     ]
                 ]
@@ -309,11 +380,7 @@ type DataAccess =
                                 ]
                             | AccessStatusStatus.DataReady data ->
                                 DataAccess.DataView data
-                                Daisy.button.button [
-                                    button.primary
-                                    prop.text "Download"
-                                    prop.onClick (fun _ -> Helper.downloadData data)
-                                ]
+                                
                             | AccessStatusStatus.Idle -> Html.none
                             | AccessStatusStatus.Success (DataResponseStatus.Error e) -> DataAccess.ErrorView(e, setStatus)
                             | AccessStatusStatus.ErrorState e -> DataAccess.ErrorView(e.Message, setStatus)

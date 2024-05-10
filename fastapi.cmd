@@ -1,1 +1,1 @@
-CALL ".venv/Scripts/python.exe" -m uvicorn src.FastAPI.app.main:app --reload
+CALL ".venv/Scripts/python.exe" src/FastAPI/app/main.py --reload

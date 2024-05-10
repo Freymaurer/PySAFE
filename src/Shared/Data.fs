@@ -26,6 +26,15 @@ type DataInput = {
         Config = DataInputConfig.init()
     }
 
+type LargeDataInput = {
+    Data: byte []
+    Config: DataInputConfig
+} with
+    static member init(data: byte [], ?config) = {
+        Data = data
+        Config = defaultArg config (DataInputConfig.init())
+    }
+
 [<RequireQualifiedAccess>]
 type DataResponseStatus =
 | Starting
@@ -51,7 +60,7 @@ type DataResponse = {
     ResultData: DataResponseItem list
 } with
     member this.ItemCount = this.InitData.Items.Length
-    member this.AllItemsProcessed = this.ResultData.Length = this.InitData.Items.Length
+    member this.AllItemsProcessed = this.ResultData.Length = this.InitData.Items.Length && not this.ResultData.IsEmpty
     static member init(guid, data) = {
         Id = guid
         Email = None

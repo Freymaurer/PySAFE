@@ -16,6 +16,7 @@
         <None Include="tailwind.config.js" />
         <None Include="paket.references" />
         <Compile Include="ReactContext.fs" />
+        <Compile Include="Components\Examples.fs" />
         <Compile Include="Components\MainCard.fs" />
         <Compile Include="Components\Help.fs" />
         <Compile Include="Components\Vanta.fs" />

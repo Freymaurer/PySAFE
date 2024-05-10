@@ -2,6 +2,7 @@ source https://api.nuget.org/v3/index.json
 framework: net8.0
 storage: none
 
+nuget Fable.Fetch 2.7.0
 nuget Feliz.DaisyUI
 nuget Feliz.Router 4.0.0
 nuget FSharp.Core ~> 8

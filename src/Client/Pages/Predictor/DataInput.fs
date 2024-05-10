@@ -2,7 +2,9 @@ namespace Pages.Predictor
 
 open Fable.Core
 open Feliz
+open Fable.Core.JsInterop
 open Feliz.DaisyUI
+open Fable.Remoting.Client
 
 [<RequireQualifiedAccess>]
 type private Tabs =
@@ -15,21 +17,27 @@ type private ValidationStatus =
     | Invalid of exn
     | Valid
 
+module private Helper =
+    [<Emit("new Uint8Array($1)")>]
+    let bufferToBytes (input: JS.ArrayBuffer) = jsNative
+
+open Helper
+
 type DataInput =
 
-    static member private TextArea(data0: DataSrc option, ?disabled:bool, ?onchange: string -> unit, ?restrictSize: int, ?keyboardconfirm: string -> unit) =
+    static member private TextArea(data0: DataSrc option, ?disabled:bool, ?onchange: string -> unit, ?restrictSize: int, ?keyboardconfirm: DataSrc -> unit) =
         let disabled = defaultArg disabled false
         let getNChars maxN (data: string) =
-            let n = System.Math.Min(data.Length-1, maxN)
+            let n = System.Math.Min(data.Length, maxN)
             data.Substring(0,n)
-        let data = if restrictSize.IsSome then data0 |> Option.map (fun data -> getNChars restrictSize.Value data.Value) else data0 |> Option.map _.Value
+        let dataString = if restrictSize.IsSome then data0 |> Option.map (fun data -> getNChars restrictSize.Value data.Value) else data0 |> Option.map _.Value
         Html.div [
             prop.className "w-full h-full flex-grow flex flex-col relative"
             prop.children [
                 Daisy.textarea [
                     textarea.bordered
-                    if data.IsSome then
-                        prop.valueOrDefault data.Value
+                    if dataString.IsSome then
+                        prop.valueOrDefault dataString.Value
                     else
                         prop.valueOrDefault ""
                     prop.disabled disabled
@@ -41,7 +49,7 @@ type DataInput =
                         // show keyboard shortcut to confirm
                         prop.onKeyDown(fun e ->
                             if (e.ctrlKey || e.metaKey) && e.which = 13. then
-                                keyboardconfirm.Value data.Value
+                                keyboardconfirm.Value data0.Value
                         )
                 ]
                 if keyboardconfirm.IsSome then
@@ -60,26 +68,28 @@ type DataInput =
         ]
 
     [<ReactComponent>]
-    static member Main(data: Shared.DataInput, setData: Shared.DataInput -> unit, setStep: Steps -> unit, datasrc: DataSrc option, setDatasrc)  =
+    static member Main(data: Shared.DataInputItem [], setData: Shared.DataInputItem [] -> unit, setStep: Steps -> unit, datasrc: DataSrc option, setDatasrc)  =
         
         let activeTab, setActiveTab = React.useState(Tabs.Text)
         let validating, setValidating = React.useState(ValidationStatus.Idle)
         let dataNotEmpty = datasrc.IsSome
-        let confirm (value: string) =
+        let confirm (value: DataSrc) =
             async {
-                // start validation
-                setValidating ValidationStatus.Validating
-                let! result = Shared.ValidateData.Main(value)
-                match result with
-                | Ok validatedData ->
-                    setValidating ValidationStatus.Valid
-                    do! Async.Sleep(500)
-                    let nextData = { data with Items = validatedData }
-                    setData nextData
-                    setStep Steps.Settings
-                | Error exn ->
-                    setValidating (ValidationStatus.Invalid exn)
-                                    
+                match value with
+                | File s | Text s -> 
+                    // start validation
+                    setValidating ValidationStatus.Validating
+                    let! result = Shared.ValidateData.Main(s)
+                    match result with
+                    | Ok validatedData ->
+                        setValidating ValidationStatus.Valid
+                        do! Async.Sleep(500)
+                        setData validatedData
+                        setStep Steps.Settings
+                    | Error exn ->
+                        setValidating (ValidationStatus.Invalid exn)
+                | LargeFile _ ->
+                    setStep Steps.Settings              
             }
             |> Async.StartImmediate
         let tab (tab: Tabs, currentTab) =
@@ -122,13 +132,23 @@ type DataInput =
                             file.bordered
                             prop.className "lg:file-input-lg cursor-pointer"
                             prop.onChange (fun (file: Browser.Types.File) ->
-                                file.text().``then``(fun r ->
-                                    DataSrc.File r
-                                    |> Some
-                                    |> setDatasrc
-                                )
-                                |> Async.AwaitPromise
-                                |> Async.StartImmediate
+                                let SizeLimit = 5000000
+                                if file.size > SizeLimit then
+                                    log "Upload large file"
+                                    async {
+                                        let blob = file.slice()
+                                        LargeFile blob |> Some |> setDatasrc
+                                    }
+                                    |> Async.StartImmediate
+                                else
+                                    log "Upload file"
+                                    file.text().``then``(fun r ->
+                                        DataSrc.File r
+                                        |> Some
+                                        |> setDatasrc
+                                    )
+                                    |> Async.AwaitPromise
+                                    |> Async.StartImmediate
                             )
                         ]
                 Daisy.cardActions [
@@ -139,14 +159,19 @@ type DataInput =
                             prop.onClick(fun _ -> setDatasrc None)
                             prop.text "Reset"
                         ]
-
+                        Components.Examples.Main(fun s ->
+                            Some (DataSrc.Text s) |> setDatasrc
+                        )
                         Daisy.button.button [
                             prop.className "ml-auto"
                             button.success
                             if not dataNotEmpty then
                                 button.disabled
                             prop.onClick(fun _ ->
-                                confirm(datasrc.Value.Value)
+                                match validating with
+                                | Idle -> 
+                                    confirm(datasrc.Value)
+                                | _ -> ()
                             )
                             prop.children [
                                 match validating with

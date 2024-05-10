@@ -3,6 +3,7 @@ namespace Pages.Predictor
 open Fable.Core
 open Feliz
 open Feliz.DaisyUI
+open Fetch
 
 [<RequireQualifiedAccess>]
 type private Status =
@@ -30,6 +31,18 @@ module private Helper =
             do! navigator.clipboard.writeText text |> Async.AwaitPromise
         }
         |> Async.StartImmediate
+
+    let uploadLargeDataFile (guid: System.Guid, blob: Browser.Types.Blob) =
+        let url = Shared.Route.builder "ILargeFileApiv1" "UploadFile"
+        fetch url [
+            requestHeaders [
+                HttpRequestHeaders.ContentType "application/octet-stream"
+                HttpRequestHeaders.Custom("X-GUID", guid.ToString())
+            ]
+            RequestProperties.Method HttpMethod.POST
+            RequestProperties.Body (BodyInit.Case1 blob)
+        ]
+        |> Async.AwaitPromise
 
 type Runner =
 
@@ -147,7 +160,7 @@ type Runner =
                     ]
                 ]
                 Daisy.formControl [ // ID Copy
-                    prop.className "relative"
+                    prop.className "relative mb-4"
                     prop.children [
                         Daisy.join [
                             Daisy.input [
@@ -200,7 +213,7 @@ type Runner =
         ]
 
     [<ReactComponent>]
-    static member Main(data, reset: unit -> unit, setIsRunning: bool -> unit)  =
+    static member Main(datasrc: DataSrc option, data: Shared.DataInputItem [], config: Shared.DataInputConfig, reset: unit -> unit, setIsRunning: bool -> unit)  =
         let (state: State), setState = React.useState(State.init)
         let emailStatus, setEmailStatus= React.useState(EmailState.Idle)
         let copied, setCopied = React.useState(false)
@@ -208,7 +221,19 @@ type Runner =
             async {
                 setIsRunning true
                 setState { state with Status = Status.Loading }
-                let! guid = Api.predictionApi.StartEvaluation data
+                let! guid =
+                    match datasrc with
+                    | Some (DataSrc.LargeFile bytes) ->
+                        async {
+                            let! guid = Api.predictionApi.PutConfig(config)
+                            let! response = Helper.uploadLargeDataFile(guid, bytes)
+                            //Api.lsApi.UploadFile (bytes)
+                            return guid
+                        }
+                    | Some _ ->
+                        let dto = Shared.DataInput.init(data, config)
+                        Api.predictionApi.StartEvaluation dto
+                    | None -> failwith "No data source selected"
                 setState { state with Status = Status.Started; Identifier = Some guid }
             }
             |> Async.StartImmediate

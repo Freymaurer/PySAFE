@@ -53,18 +53,34 @@ type ResultType = {
     Batch: int
 }
 
-let subscribeWebsocket (id: System.Guid) (data: DataInput) =
-    let dataResponse0 = DataResponse.init(id, data)
-    Storage.Storage.Set(id, dataResponse0)
+let subscribeWebsocket (dro: DataResponse) =
+    let id = dro.Id
+    Storage.Storage.Set(dro.Id, dro)
     let exitEvent = new ManualResetEvent(false)
     async {
-        logws id "Subscribing to websocket .." 
+        logws id "Subscribing to websocket .."
         use client = new WebsocketClient(Environment.python_service_websocket)
         let closeAll(msg) =
-            client.Stop(WebSocketCloseStatus.NormalClosure, msg) |> ignore
+            logws id "%s" msg
             client.Dispose()
             exitEvent.Set() |> ignore
-        client.ReconnectionHappened.Subscribe(fun info -> logws id "Reconnection happened, type: %A" info.Type)
+        client.ReconnectionHappened.Subscribe(fun info ->
+            match info.Type with
+            | ReconnectionType.Lost ->
+                Storage.Storage.Update(id,fun current -> { current with Status = DataResponseStatus.Error "Connection lost." })
+                closeAll("Connection lost.")
+            | _ ->
+                logws id "Reconnection happened, type: %A" info.Type
+        )
+        |> ignore
+        client.DisconnectionHappened.Subscribe(fun info ->
+            match info.Type with
+            | DisconnectionType.Error ->
+                Storage.Storage.Update(id,fun current -> { current with Status = DataResponseStatus.Error "Disconnection.Error happened." })
+                closeAll("Disconnection.Error happened.")
+            | _ ->
+                logws id "Disconnection happened, type: %A" info.Type
+        )
         |> ignore
         client.MessageReceived.Subscribe(fun response ->
             try
@@ -72,8 +88,7 @@ let subscribeWebsocket (id: System.Guid) (data: DataInput) =
                 logws id "Message received: %A" msg.API
                 match msg.API with
                 | "Exit" ->
-                    logws id "Closing client .."
-                    closeAll("Task run successfully")
+                    closeAll("Closing client ..")
                     logws id "Starting analysis .."
                     Storage.Storage.Update(id, fun current -> { current with Status = DataResponseStatus.AnalysisRunning } )
                     Storage.Storage.Update(id,fun current ->
@@ -105,7 +120,7 @@ let subscribeWebsocket (id: System.Guid) (data: DataInput) =
                                 let newData = responseData.Results |> List.map DataResponseItem.init
                                 newData@current.ResultData
                         }
-                    ) 
+                    )
                     logws id "DataResponse received: %A" responseData.Batch
                 | msg ->
                     logws id "Unhandled Message received: %A" msg
@@ -116,12 +131,17 @@ let subscribeWebsocket (id: System.Guid) (data: DataInput) =
         )
         |> ignore
         logws id "Starting client .."
+        //if client.IsRunning then
+        logws id "transforming data to json .."
+        let bytes = Encoding.UTF8.GetBytes(Json.JsonSerializer.Serialize<DataInput>(dro.InitData))
         client.Start() |> ignore
-        let _ =
-            logws id "transforming data to json .."
-            let json = Json.JsonSerializer.Serialize<DataInput>(data)
-            logws id "Sending data .."
-            client.Send(json)
+        Storage.Storage.Update(id,fun current -> { current with Status = DataResponseStatus.Starting})
+        logws id "Sending data .."
+        client.Send(bytes) |> ignore
+        //else
+        //    Storage.Storage.Update(id,fun current -> { current with Status = DataResponseStatus.Error "Unable to connect to ml service." })
+        //    closeAll("Unable to connect to ml service.")
+            
         exitEvent.WaitOne() |> ignore
     }
     |> Async.Start

@@ -49,3 +49,17 @@ sequenceDiagram
     net-->>c: return data
     c-->>u: download data
 ```
+
+### Development
+
+1a. Settings:
+    - Cutoff in settings: default value of 0.05
+1b. User input:
+    - main.py: 31-41
+    - Recylce Deepstabp parsing
+    - No letter swapping, no whitespace in between.
+2. Run prediction on `list[PredictorInfor]`
+    - Output: `list[SinglePrediction]`
+3. Run statistics on `SinglePrediction list`
+    - Requires cut-off value to make final prediction.
+    - offer download as csv, tsv or xlsx

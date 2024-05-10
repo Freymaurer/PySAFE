@@ -17,7 +17,9 @@ module Steps =
 type DataSrc =
     | File of string
     | Text of string
+    | LargeFile of Browser.Types.Blob
     member this.Value =
         match this with
         | File s -> s
         | Text s -> s
+        | LargeFile _ -> "Large file detected. No Preview available."
