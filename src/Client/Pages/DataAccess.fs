@@ -87,7 +87,7 @@ module private Helper =
 
     let dtoToString(dto: DataResponseDTO) =
         dto.Data
-        |> List.mapi (fun i x -> sprintf "%i\t%s\t%A" i x.Header x.Predictions)
+        |> List.mapi (fun i x -> sprintf "%i\t%s\t%A" i x.Header x.FinalPred)
         |> String.concat "\n"
 
     let downloadData (dto: DataResponseDTO) =
@@ -274,7 +274,7 @@ type DataAccess =
                                         Html.tr [
                                             Html.th (outerIndex)
                                             Html.td ele.Header
-                                            Html.td (ele.Predictions |> List.map string |> String.concat ", ")
+                                            Html.td (ele.FinalPred |> Array.map string |> String.concat ", ")
                                         ]
                                 ]
                             ]

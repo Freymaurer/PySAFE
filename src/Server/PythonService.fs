@@ -102,6 +102,7 @@ let subscribeWebsocket (dro: DataResponse) =
                             let analysisResult =
                                 try
                                     let res = Analysis.runAnalysis current |> Async.RunSynchronously
+                                    logws id "Analysis done. Task completed successfully .."
                                     res
                                 with
                                     | e -> {current with Status = DataResponseStatus.Error e.Message}
@@ -117,7 +118,6 @@ let subscribeWebsocket (dro: DataResponse) =
                         |> Async.RunSynchronously
                     | None ->
                         logws id "Not subscribed to notification service .."
-                    logws id "Analysis done. Task completed successfully .."
                 | "Error" ->
                     logws id "Python Error: %A" msg.Data
                     closeAll("Python error")
@@ -128,9 +128,9 @@ let subscribeWebsocket (dro: DataResponse) =
                     Storage.Storage.Update(id,fun current ->
                         { current with
                             Status = DataResponseStatus.MLRunning(responseData.Batch)
-                            ResultData =
+                            PredictionData =
                                 let newData = responseData.Results
-                                newData@current.ResultData
+                                newData@current.PredictionData
                         }
                     )
                     logws id "DataResponse received: %A" responseData.Batch

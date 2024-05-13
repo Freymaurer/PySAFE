@@ -118,6 +118,7 @@ let predictionAPIv1: IPredictionApiv1 = {
                     Id = guid
                     Status = DataResponseStatus.Validating
                     InitData = { Items = [||]; Config = config}
+                    PredictionData = []
                     ResultData = []
                 }
             Storage.Storage.Set(guid, dro)

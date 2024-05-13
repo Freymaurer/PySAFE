@@ -7,7 +7,9 @@ nuget Feliz.DaisyUI
 nuget Feliz.Router 4.0.0
 nuget FSharp.Core ~> 8
 nuget Fable.Remoting.Giraffe ~> 5
+nuget FSharpAux 1.0.0
 nuget Microsoft.Extensions.Configuration.UserSecrets
+nuget ProteomIQon 0.0.8
 nuget Saturn ~> 0
 nuget Expecto ~> 9
 
