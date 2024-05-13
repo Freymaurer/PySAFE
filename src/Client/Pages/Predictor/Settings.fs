@@ -48,7 +48,7 @@ type Settings =
                     prop.children [
                         Settings.ConfigElement(
                             "Cut off",
-                            """The cut off value determines the likelyhood of getting a false positive. Choosing a cut off of 0.05 means there is a 5% chance.""",
+                            """The threshold q-value below which a prediction is considered statistically significant. Set to 0.05 by default, meaning that predictions with q-values below this threshold are classified as significant. This parameter helps in distinguishing between statistically significant and non-significant predictions, reducing the chance of false-positive localizations.""",
                             Daisy.input [
                                 prop.type'.number
                                 prop.min 0.0

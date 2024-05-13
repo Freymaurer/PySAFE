@@ -87,7 +87,20 @@ module private Helper =
 
     let dtoToString(dto: DataResponseDTO) =
         dto.Data
-        |> List.mapi (fun i x -> sprintf "%i\t%s\t%A" i x.Header x.FinalPred)
+        |> List.mapi (fun i x ->
+            [|
+                string i
+                x.Header
+                string x.Chloropred
+                string x.Qchloro
+                string x.Mitopred
+                string x.Qmito
+                string x.Secrpred
+                string x.Qsecr
+                x.FinalPred |> Array.map string |> String.concat ";"
+            |]
+            |> String.concat "\t"
+        )
         |> String.concat "\n"
 
     let downloadData (dto: DataResponseDTO) =
@@ -240,12 +253,50 @@ type DataAccess =
             button.disabled
             prop.text ""
         ]
-
+        //87cc0fed-ea60-46fc-8040-5be8efaee695
     [<ReactComponent>]
     static member private DataView(data: DataResponseDTO) =
         let activeChunk, setActiveChunk = React.useState(0)
         let chunkedData = data.Data |> Seq.chunkBySize 50
         let chunkCount = Seq.length chunkedData
+        let tpHeader (name: string) (txt: string) = 
+            Html.th [
+                prop.className "relative"
+                prop.children [
+                    Html.div [
+                        prop.className "flex justify-between"
+                        prop.children [
+                            Html.span name
+                            Daisy.dropdown [
+                                dropdown.hover
+                                prop.children [
+                                    Daisy.badge [
+                                        badge.xs
+                                        prop.role "button"
+                                        prop.text "?"
+                                    ]
+                                    Daisy.dropdownContent [
+                                        prop.className "z-[1] card p-2 shadow bg-primary text-primary-content absolute"
+                                        prop.children [
+                                            Daisy.cardBody [
+                                                prop.className "p-2"
+                                                prop.children [
+                                                    Html.div [
+                                                        prop.className "prose text-white w-64 overflow text-xs whitespace-normal"
+                                                        prop.children [
+                                                            Html.p txt
+                                                        ]
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         Html.div [
             prop.className "flex flex-grow flex-col gap-4 w-full"
             prop.children [
@@ -254,7 +305,6 @@ type DataAccess =
                     prop.id "table-container"
                     prop.children [
                         Daisy.table [
-                            table.pinRows
                             table.pinCols
                             table.xs
                             prop.children [
@@ -262,7 +312,25 @@ type DataAccess =
                                     Html.tr [
                                         Html.th ""
                                         Html.th "Header"
-                                        Html.th "Prediction"
+                                        tpHeader "Prediction"
+                                            """Represents the model's final prediction of the\n
+protein's localization based on the highest score
+and its corresponding q-value. The final localization
+is determined by comparing the q-values and
+prediction scores against preset cutoffs. If all
+q-values exceed the cutoff, the protein is classified as "Cytoplasmic." """
+                                        tpHeader "Chloropred"
+                                            "Prediction score indicating the likelihood of the protein being localized to the Chloroplast. A higher scores suggest a stronger prediction that the protein is localized in the Chloroplast."
+                                        tpHeader "Qchloro"
+                                            "q-value associated with the Chloroplast prediction score. Provides a measure of statistical significance for the Chloroplast prediction. Lower q-values indicate higher statistical significance."
+                                        tpHeader "Mitopred"
+                                            "Prediction score for the localization of the protein to the Mitochondria. A higher scores suggest a stronger prediction of Mitochondrial localization."
+                                        tpHeader "Qmito"
+                                            "q-value associated with the Mitochondria prediction score. Indicates the statistical significance of the Mitochondria localization prediction. Lower q-values suggest a more reliable prediction."
+                                        tpHeader "Secrpred"
+                                            "Prediction score for identifying the protein as a Secretory Protein.A higher scores indicate a stronger likelihood that the protein functions as a Secretory Protein."
+                                        tpHeader "Qsecr"
+                                            "q-value for the Secretory Protein prediction. Provides a measure of the statistical significance of the Secretory Protein prediction. Lower q-values are indicative of more statistically significant predictions."
                                     ]
                                 ]
                                 Html.tbody [
@@ -273,8 +341,17 @@ type DataAccess =
                                         let outerIndex = innerIndex * (activeChunk+1)
                                         Html.tr [
                                             Html.th (outerIndex)
-                                            Html.td ele.Header
-                                            Html.td (ele.FinalPred |> Array.map string |> String.concat ", ")
+                                            for field in [|
+                                                ele.Header
+                                                ele.FinalPred |> Array.map string |> String.concat ";"
+                                                !!ele.Chloropred
+                                                !!ele.Qchloro
+                                                !!ele.Mitopred
+                                                !!ele.Qmito
+                                                !!ele.Secrpred
+                                                !!ele.Qsecr
+                                            |] do
+                                                Html.td field
                                         ]
                                 ]
                             ]
