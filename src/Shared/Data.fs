@@ -8,10 +8,10 @@ type DataInputItem = {
 }
 
 type DataInputConfig = {
-    SomeConfig: bool
+    CutOff: float
 } with
-    static member init() = {
-        SomeConfig = true
+    static member init(?cutoff) = {
+        CutOff = defaultArg cutoff 0.05
     }
 
 type DataInput = {

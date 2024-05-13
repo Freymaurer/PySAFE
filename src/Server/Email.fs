@@ -12,13 +12,24 @@ let SMPTClient =
     c
 
 let emailSend(mail:MailMessage) =
-    if not Environment.missingEmailCredentials then
-        SMPTClient.SendMailAsync mail
-        |> Async.AwaitTask
-    else
-        async {
-            return()
-        }
+    async {
+        try
+            if not Environment.missingEmailCredentials then
+                do! SMPTClient.SendMailAsync mail |> Async.AwaitTask
+        with
+            | e -> printfn "[Email] %s" e.Message
+    }
+
+let createMessage(from: string, toEmail: string, subject: string, body: string) =
+    try
+        let msg = new MailMessage(from, toEmail, subject, body)
+        msg.BodyEncoding <- Text.Encoding.UTF8
+        msg.IsBodyHtml <- true
+        Some msg
+    with
+        | e ->
+            printfn "[Email] %s" e.Message
+            None
 
 open Giraffe.ViewEngine
 
@@ -80,25 +91,23 @@ let notificationEmailBody =
     |> RenderView.AsString.htmlDocument
 
 let sendConfirmation(targetEmail: string) =
-    let msg =
-        new MailMessage(
+    match createMessage(
             Environment.EmailConfig.Email,
             targetEmail,
             "CSB - Confirmation: Registration to Notification Service",
             confirmationEmailBody
-        )
-    msg.BodyEncoding <- Text.Encoding.UTF8
-    msg.IsBodyHtml <- true
-    emailSend msg
+        ) with
+    | Some msg ->
+        emailSend msg
+    | None -> async.Zero()
 
 let sendNotification(targetEmail: string) =
-    let msg =
-        new MailMessage(
+    match createMessage(
             Environment.EmailConfig.Email,
             targetEmail,
             "CSB - Notification: Your Data Analysis is Ready!",
             notificationEmailBody
-        )
-    msg.BodyEncoding <- Text.Encoding.UTF8
-    msg.IsBodyHtml <- true
-    emailSend msg
+        ) with
+    | Some msg ->
+        emailSend msg
+    | None -> async.Zero()

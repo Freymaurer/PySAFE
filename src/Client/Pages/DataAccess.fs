@@ -43,8 +43,6 @@ type private FlipStates =
 
 open Fable.Core.JsInterop
 
-//c558ae3b-1509-4d82-9bb4-e176741866c3
-
 module private Helper =
 
     open Browser.Types
@@ -343,10 +341,8 @@ type DataAccess =
                     let! response = Api.predictionApi.GetStatus guid
                     match response with
                     | DataResponseStatus.Finished ->
-                        log "Data is ready"
                         setStatus (AccessStatusStatus.LoadingData)
                         let! data = Api.predictionApi.GetData guid
-                        log (sprintf "Data: %A" data)
                         setStatus (AccessStatusStatus.DataReady data)
                     | anyElse -> 
                         setStatus (AccessStatusStatus.Success response)

@@ -7,6 +7,11 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import json
+from pydantic import BaseModel
+
+class DataResponseItem(BaseModel):
+    Header      : str
+    Predictions : list[float]
 
 def collate_fn (batch):
     pad_value = 0.
@@ -30,7 +35,7 @@ def generate_embedding (fasta, tokenizer, model):
     emb = torch.from_numpy(emb)
     emb = emb.unsqueeze(0)
     return emb
-    
+
 class attention_pooling (nn.Module):
     def __init__(self, input_dim, dropout):
         super().__init__()
@@ -48,7 +53,7 @@ class attention_pooling (nn.Module):
         attention = F.softmax(attention, dim=-1)
         value = torch.matmul(attention, value)
         return value
-    
+
 class multihead_attention_pooling (nn.Module):
     def __init__(self, input_dim, num_heads, dropout):
         super().__init__()
@@ -71,7 +76,7 @@ class multihead_attention_pooling (nn.Module):
         attention = self.dropout(attention)
         value = torch.matmul(attention, value)
         return value.reshape(B,1,E)
-    
+
 class feedforward_block (nn.Module):
     def __init__(self,emb_dim, dropout):
         super().__init__()
@@ -79,7 +84,7 @@ class feedforward_block (nn.Module):
         self.ff1 = nn.Linear(emb_dim, emb_dim)
         self.ff2 = nn.Linear(emb_dim, emb_dim)
         self.dropout = nn.Dropout(dropout)
-    
+
     def forward(self,x):
         x = self.ff1(x)
         x = F.gelu(x)
@@ -102,7 +107,7 @@ class LearnedAggregation (nn.Module):
         self.gamma1 = nn.Parameter(self.init_value*torch.ones(input_dim), requires_grad=True)
         self.gamma2 = nn.Parameter(self.init_value*torch.ones(input_dim), requires_grad=True)
         self.ff = feedforward_block(input_dim, dropout)
-    
+
     def forward(self, x, x_cls, mask):
         #u = torch.cat ((x, x_cls), dim=1)
         u = self.gamma1*self.normpast(self.attn(self.normpre(x),mask))
@@ -118,7 +123,7 @@ class Loc_classifier (nn.Module):
         super().__init__()
         #parameters for the folliwing functions
         self.dropout =dropout
-        
+
         #attetnion pooling
         self.cls = nn.Parameter (torch.zeros(1,int(emb_dim)), requires_grad=True)
         self.blocks = nn.ModuleList([LearnedAggregation(emb_dim, dropout=dropout, num_heads=num_heads, init_value=init_value) for _ in range(n_blocks)])
@@ -129,7 +134,7 @@ class Loc_classifier (nn.Module):
         self.second_layer = nn.Linear (emb_dim, label_size)
         self.layer_norm1 = nn.LayerNorm (emb_dim)
 
-    #forward pass through the neural network    
+    #forward pass through the neural network
     def forward (self, x, mask):
         B,L,E = x.size()
         x_cls = self.cls.expand(B,1,-1)
@@ -157,10 +162,8 @@ def prediction (fasta, tokenizer, model, predchloro, predmito, predsecreted):
         prediction_sp = prediction_sp[:,0]
         final_prediction = torch.stack((prediction_chloro, prediction_mito, prediction_sp), dim=1)
         final_prediction = final_prediction.tolist()
-    json_data = json.dumps([
-        {"Header": name,
-         "Prediction":final_prediction[i]}
+    result = [
+        DataResponseItem(Header=name, Predictions=final_prediction[i])
         for i,name in enumerate(name_list)
-    ])
-
-    return json_data
+    ]
+    return result

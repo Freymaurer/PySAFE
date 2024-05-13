@@ -7,13 +7,38 @@ open Components
 open Shared
 
 type Settings =
+    static member ConfigElement(name: string, label: string, inputElement: ReactElement, ?isError: string) =
+        Daisy.formControl [
+            Daisy.label [
+                prop.className "gap-8"
+                prop.children [
+                    Daisy.labelText [
+                        prop.className "prose text-justify"
+                        prop.children [
+                            Html.h4 name
+                            Daisy.help [
+                                Html.span label
+                            ]
+                        ]
+                    ]
+                    Daisy.formControl [
+                        inputElement
+                        if isError.IsSome then
+                            Daisy.label [
+                                Daisy.labelTextAlt isError.Value
+                            ]
+                    ]
+                ]
+            ]
+        ]
+
     [<ReactComponent>]
     static member Main(config: Shared.DataInputConfig, setConfig: Shared.DataInputConfig -> unit, setStep: Steps -> unit) =
-        let radioConfig1Id = "radio_config1"
+        let isWrongInput, setIsWrongInput = React.useState false
         Html.div [
             prop.className "flex flex-col flex-grow gap-3"
             prop.children [
-                Html.div [
+                Html.form [
                     prop.className "flex justify-between"
                     prop.children [
                         Daisy.cardTitle "Settings"
@@ -21,29 +46,28 @@ type Settings =
                 ]
                 Html.div [
                     prop.children [
-                        Daisy.formControl [
-                            Daisy.label [
-                                prop.className "gap-8"
-                                prop.children [
-                                    Daisy.labelText [
-                                        prop.className "prose text-justify"
-                                        prop.children [
-                                            Html.h4 "Config 1"
-                                            Daisy.help [
-                                                Html.span """This configuration setting toggles between two states: "active" and "not active." When active, the feature is enabled, providing its intended functionality. Conversely, when not active, the feature is disabled, withholding its functionality. Adjust this setting based on your needs to control the feature's behavior within the system."""
-                                            ]
-                                        ]
-                                    ]
-                                    Daisy.toggle [
-                                        prop.id radioConfig1Id
-                                        if config.SomeConfig then toggle.primary
-                                        prop.onChange(fun (b:bool) -> setConfig {config with SomeConfig = b} )
-                                        prop.defaultChecked config.SomeConfig
-                                    ]
-                                ]
-                            ]
-                            
-                        ]
+                        Settings.ConfigElement(
+                            "Cut off",
+                            """The cut off value determines the likelyhood of getting a false positive. Choosing a cut off of 0.05 means there is a 5% chance.""",
+                            Daisy.input [
+                                prop.type'.number
+                                prop.min 0.0
+                                prop.max 1.0
+                                prop.step 0.01
+                                prop.defaultValue config.CutOff
+                                if isWrongInput then
+                                    input.error
+                                prop.onChange(fun (f0: float) ->
+                                    if f0 > 1.0 || f0 < 0.0 then
+                                        setIsWrongInput true
+                                    else
+                                        setIsWrongInput false
+                                    let f = System.Math.Min(1.0, System.Math.Max(0.0, f0))
+                                    setConfig {config with CutOff = f}
+                                )
+                            ],
+                            ?isError=(if isWrongInput then Some "Value must be between 0 and 1" else None)
+                        )
                     ]
                 ]
                 Daisy.cardActions [

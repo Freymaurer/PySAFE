@@ -99,7 +99,6 @@ let predictionAPIv1: IPredictionApiv1 = {
         }
     GetData = fun id ->
         async {
-            printfn "HIT"
             let dto =
                 match Storage.Storage.TryGet id with
                 | Some dr ->
