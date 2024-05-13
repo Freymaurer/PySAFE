@@ -1,5 +1,8 @@
 # PySAFE
 
+![image](https://github.com/Freymaurer/PySAFE/assets/39732517/08553f30-f1d8-4457-9060-95e48e18dc32)
+
+
 # Result
 
 Explanations of Chloropred ,Qchloro, Mitopred,Qmito,Secrpred,Qsecr, and FinalPred.
@@ -42,8 +45,43 @@ You'll need to install the following pre-requisites in order to build SAFE appli
 * [.NET SDK](https://www.microsoft.com/net/download) 8.0 or higher
 * [Node 18](https://nodejs.org/en/download/) or higher
 * [NPM 9](https://www.npmjs.com/package/npm) or higher
+* [Python 3.10](https://www.python.org/downloads/) or higher
 
-## Starting the application
+## Install
+
+- run `setup.cmd`
+
+.. __or__ ..
+  
+1. `dotnet tool restore`
+2. `py -m venv .venv`
+3. `.\.venv\Scripts\python.exe -m pip install -r .\src\FastAPI\requirements.txt`
+
+## Run
+
+- `.\build.cmd run` starts SAFE stack
+
+plus in another terminal run:
+
+1. activate local python environment: `.\.venv\Scripts\Activate.ps1`
+2. navigate to fastapi folder: `cd .\src\FastAPI\`
+3. start fastapi backend: `python -m uvicorn app.main:app --reload`
+
+## Activate Email notification (optional)
+
+Set user-secrets in the following schema:
+
+```json
+{
+  "email": {
+    "NET_EMAIL_EMAIL": "placeholder@mail.de",
+    "NET_EMAIL_ACCOUNTNAME": "PlaceholderAccountName",
+    "NET_EMAIL_PASSWORD": "HelloWorld1234",
+    "NET_EMAIL_SERVER": "smtp.placeholdermail.de",
+    "NET_EMAIL_PORT": 587
+  }
+}
+```
 
 ## Request Workflow
 
@@ -84,17 +122,3 @@ sequenceDiagram
     net-->>c: return data
     c-->>u: download data
 ```
-
-### Development
-
-1a. Settings:
-    - Cutoff in settings: default value of 0.05
-1b. User input:
-    - main.py: 31-41
-    - Recylce Deepstabp parsing
-    - No letter swapping, no whitespace in between.
-2. Run prediction on `list[PredictorInfor]`
-    - Output: `list[SinglePrediction]`
-3. Run statistics on `SinglePrediction list`
-    - Requires cut-off value to make final prediction.
-    - offer download as csv, tsv or xlsx
